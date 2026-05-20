@@ -1,0 +1,27 @@
+; PROTOTYPE - NOT FOR PRODUCTION
+; Question: Does the pull-lever → crush → silhouette → tap-reveal micro-loop feel theatrically satisfying with placeholder visuals + SFX?
+; Date: 2026-05-20
+; Engine: Godot 4.6
+
+config_version=5
+
+[application]
+
+config/name="Worry Crusher Concept Prototype"
+config/description="Throwaway prototype testing the core 30s micro-loop. Pull the lever, watch the machine crush, tap the silhouette to reveal. Validate: do testers spontaneously pull again within 10s of first reveal?"
+run/main_scene="res://main.tscn"
+config/features=PackedStringArray("4.6", "Forward Plus")
+
+[display]
+
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+window/size/window_width_override=540
+window/size/window_height_override=960
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
+environment/defaults/default_clear_color=Color(0.965, 0.945, 0.906, 1)
