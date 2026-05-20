@@ -7,8 +7,8 @@ config_version=5
 
 [application]
 
-config/name="Worry Crusher Concept Prototype"
-config/description="Throwaway prototype testing the core 30s micro-loop. Pull the lever, watch the machine crush, tap the silhouette to reveal. Validate: do testers spontaneously pull again within 10s of first reveal?"
+config/name="Mochi — Concept Prototype"
+config/description="Throwaway prototype for Mochi. Tests the core 30s micro-loop: pull the lever, watch Mochi crush, tap the silhouette to reveal. Validate: do testers spontaneously pull again within 10s of first reveal?"
 run/main_scene="res://main.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 

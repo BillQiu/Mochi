@@ -1,6 +1,7 @@
 extends Node2D
 
 # PROTOTYPE - NOT FOR PRODUCTION
+# Project: Mochi (concept prototype 1)
 # Question: Does the pull-lever → crush → silhouette → tap-reveal micro-loop
 #           feel theatrically satisfying with placeholder visuals + SFX?
 # Date: 2026-05-20

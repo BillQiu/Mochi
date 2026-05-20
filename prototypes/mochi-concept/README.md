@@ -1,7 +1,8 @@
-# Worry Crusher — Concept Prototype
+# Mochi — Concept Prototype
 
 > **PROTOTYPE - NOT FOR PRODUCTION**
 > Throwaway code testing one question. Do not import any of this into the production tree.
+> *Mochi is the project name, the upcoming game's title, and the name of the machine character (a fluffy mechanical worry-eater).*
 
 **Created:** 2026-05-20
 **Engine:** Godot 4.6 (desktop run; iOS Haptic validation is a separate future prototype)
@@ -24,7 +25,7 @@ The riskiest assumption: the lever-pull → shake → reveal micro-theatre must 
 ### Option A — Godot Editor
 
 1. Open Godot 4.6
-2. **Project → Import...** → select `prototypes/worry-crusher-concept/project.godot`
+2. **Project → Import...** → select `prototypes/mochi-concept/project.godot`
 3. Click **Import & Edit**
 4. Press **F5** (or click the play button)
 5. Window opens at 540×960 (mobile portrait simulated). Drag the orange handle on the right downward.
@@ -33,7 +34,7 @@ The riskiest assumption: the lever-pull → shake → reveal micro-theatre must 
 
 ```bash
 cd /Users/billqiu/workspace/my-game
-godot --path prototypes/worry-crusher-concept/
+godot --path prototypes/mochi-concept/
 ```
 
 (Adjust `godot` to your install path — e.g. `/Applications/Godot.app/Contents/MacOS/Godot` on macOS.)
@@ -111,6 +112,6 @@ Hand this prototype to someone (or yourself after a fresh break of 2+ days):
 
 Run `/prototype` again to continue from Phase 6 (Playtest Debrief). Or directly tell the next session:
 
-> "Continue the worry-crusher concept prototype from Phase 6 — playtest debrief."
+> "Continue the Mochi concept prototype from Phase 6 — playtest debrief."
 
 The session state is in `production/session-state/active.md`.

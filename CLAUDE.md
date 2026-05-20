@@ -1,4 +1,9 @@
-# Claude Code Game Studios -- Game Studio Agent Architecture
+# Mochi
+
+> Project codename, working title, and machine character name.
+> Mobile 2D cozy worry-transformation toy. Solo indie, first game.
+
+## Game Studio Agent Architecture
 
 Indie game development managed through 49 coordinated Claude Code subagents.
 Each agent owns a specific domain, enforcing separation of concerns and quality.

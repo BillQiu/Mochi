@@ -1,7 +1,9 @@
-# Game Concept: 烦恼粉碎机 (Worry Crusher)
+# Game Concept: Mochi
 
 *Created: 2026-05-20*
 *Status: Draft*
+*Working title: **Mochi** (中英文统一，不另作中文译名)*
+*Machine character name: **Mochi** (resolves Open Question §1)*
 
 ---
 
@@ -310,7 +312,7 @@
 
 ### Open Questions
 
-- **机器叫什么名字？性格细节是什么？** → 移交 `/design-system` 中"角色设计"环节决定
+- ~~**机器叫什么名字？**~~ → **已定：Mochi**（2026-05-20 命名定稿）。**性格细节** → 移交 `/design-system` 中"角色设计"环节决定
 - **MVP 8 个产物具体是什么？** → 移交 `/design-system` 中"产物系统"环节决定
 - **触觉反馈具体曲线如何设计？** → 移交 prototype 阶段 (`/prototype`) 验证
 - **音效从哪来？** → 移交 `/setup-engine` 后讨论音频管线
