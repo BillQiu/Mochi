@@ -37,7 +37,7 @@
 #   Each entry: name, status, source, referenced_by[], attributes{}, added, revised
 
 version: 1
-last_updated: ""
+last_updated: "2026-05-21"
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
 # Named game-world objects: enemies, NPCs, characters, factions, bosses.
@@ -106,7 +106,19 @@ items: []
 #   output_range[min, max], added
 # Optional: expression (the actual formula), notes
 
-formulas: []
+formulas:
+  - name: volume_to_db
+    status: active
+    source: design/gdd/audio-system.md
+    referenced_by:
+      - design/gdd/audio-system.md
+    variables:
+      - v   # float [0.0, 1.0] — 玩家滑块线性值
+    output_range: [-80, 0]
+    expression: "v > 0 ? 20 * log10(v) : -80.0"
+    notes: "v=0 返回 -80dB 静音哨兵值（避免 log(0)=-∞）。输出传入 AudioServer.set_bus_volume_db()。Settings UI（v1.0）会引用此公式显示音量百分比。"
+    added: "2026-05-21"
+    revised: ""
 
 # Example:
 #
@@ -151,7 +163,112 @@ constants:
     notes: "At 2x Retina (iPhone SE) design baseline. Derived from iOS HIG 44pt × 2x scale factor.
       All interactive touch targets (silhouette, buttons, hot zones) must meet this floor.
       Accessibility System (v1.0) audits compliance."
-    added: 2026-05-21
+    added: "2026-05-21"
+    revised: ""
+
+  # ── SFX 事件键（AudioSystem 接口契约）──────────────────────────────────────
+  # 下游系统调用 AudioSystem.play("key") 时必须与这些键名一致。
+  - name: sfx_lever_pull
+    status: active
+    source: design/gdd/audio-system.md
+    referenced_by:
+      - design/gdd/audio-system.md
+      - design/gdd/lever-interaction.md   # 摇杆越过触发阈值时调用
+    value: "lever_pull"
+    unit: string_key
+    added: "2026-05-21"
+    revised: ""
+
+  - name: sfx_shred_start
+    status: active
+    source: design/gdd/audio-system.md
+    referenced_by:
+      - design/gdd/audio-system.md
+      - design/gdd/shred-process.md
+    value: "shred_start"
+    unit: string_key
+    added: "2026-05-21"
+    revised: ""
+
+  - name: sfx_shred_loop
+    status: active
+    source: design/gdd/audio-system.md
+    referenced_by:
+      - design/gdd/audio-system.md
+      - design/gdd/shred-process.md
+    value: "shred_loop"
+    unit: string_key
+    notes: "循环键，需用 play_loop()/stop_loop() 而非 play()"
+    added: "2026-05-21"
+    revised: ""
+
+  - name: sfx_shred_end
+    status: active
+    source: design/gdd/audio-system.md
+    referenced_by:
+      - design/gdd/audio-system.md
+      - design/gdd/shred-process.md
+    value: "shred_end"
+    unit: string_key
+    added: "2026-05-21"
+    revised: ""
+
+  - name: sfx_reveal_pop
+    status: active
+    source: design/gdd/audio-system.md
+    referenced_by:
+      - design/gdd/audio-system.md
+      - design/gdd/silhouette-reveal.md
+    value: "reveal_pop"
+    unit: string_key
+    added: "2026-05-21"
+    revised: ""
+
+  - name: sfx_product_land
+    status: active
+    source: design/gdd/audio-system.md
+    referenced_by:
+      - design/gdd/audio-system.md
+      - design/gdd/silhouette-reveal.md
+    value: "product_land"
+    unit: string_key
+    added: "2026-05-21"
+    revised: ""
+
+  - name: sfx_shelf_add
+    status: active
+    source: design/gdd/audio-system.md
+    referenced_by:
+      - design/gdd/audio-system.md
+      - design/gdd/shelf-collection.md
+    value: "shelf_add"
+    unit: string_key
+    added: "2026-05-21"
+    revised: ""
+
+  - name: sfx_bgm_main_loop
+    status: active
+    source: design/gdd/audio-system.md
+    referenced_by:
+      - design/gdd/audio-system.md
+      - design/gdd/juice-cookbook.md   # Juice Cookbook 引用此键作为 BGM 层定义
+    value: "BGM_main_loop"
+    unit: string_key
+    notes: "自动循环键，由 AudioSystem 自管理，无下游系统主动调用"
+    added: "2026-05-21"
+    revised: ""
+
+  # ── 音频混音常量 ────────────────────────────────────────────────────────────
+  - name: audio_bgm_offset_db
+    status: active
+    source: design/gdd/audio-system.md
+    referenced_by:
+      - design/gdd/audio-system.md
+      - design/gdd/juice-cookbook.md   # Juice Cookbook 引用此值定义音频层次关系
+    value: -12
+    unit: dB
+    notes: "BGM 总线相对 SFX 总线的偏移量。安全 Tuning 范围 [-10, -18dB]。由 F-2 公式使用。"
+    added: "2026-05-21"
     revised: ""
 
 # Example:
