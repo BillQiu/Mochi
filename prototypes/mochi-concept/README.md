@@ -108,10 +108,45 @@ Hand this prototype to someone (or yourself after a fresh break of 2+ days):
 
 ---
 
-## When You Come Back
+## Status: CONCLUDED — PROCEED ✅
 
-Run `/prototype` again to continue from Phase 6 (Playtest Debrief). Or directly tell the next session:
+**Verdict date:** 2026-05-21
+**Decision:** Concept validated. Move to Pre-Production.
 
-> "Continue the Mochi concept prototype from Phase 6 — playtest debrief."
+### Findings
 
-The session state is in `production/session-state/active.md`.
+The micro-loop **logic** holds — the rhythm pull → crush → reveal reads as a
+mini-theatre. The riskiest assumption (theatre quality without Haptics) does
+not break; iOS Haptic remains a polish layer, not a structural crutch.
+
+**Critical caveat (user 2026-05-21):** The visual / interaction surface is
+**too bland ("寡淡")**. The loop works mechanically but does not yet sell
+the theatre with the intensity the concept promises. This is **not** "polish
+later" feedback — it means **Game Feel / Juice / VFX must be treated as a
+first-class system**, not a finishing pass.
+
+Concrete implications carried into Pre-Production:
+- Squash & stretch, anticipation, follow-through must be designed into the
+  lever / machine / silhouette / reveal motion — not added at the end.
+- Particles, screen shake, time-scaling on impact, color flashes, audio
+  layering belong in a dedicated system GDD (`game-feel.md` or equivalent).
+- A juice / VFX system likely needs its own gate before vertical slice —
+  if it cannot make the loop *feel theatrically intense*, the concept
+  pivots, not just the implementation.
+
+### Bugs surfaced (informs production coding standards)
+
+Godot 4.6's stricter type inference rejected three prototype-grade patterns:
+- `var x := clamp(...)` — generic `clamp` returns `Variant`. Use `clampf`.
+- Variable named `wrap` — shadowed built-in. Avoid names like
+  `wrap / abs / sign / max / min / clamp / lerp` as locals.
+- Type-annotated vars assigned from helper functions — annotation must match
+  the helper's actual return type, not the intended type.
+
+These become checklist items for `godot-gdscript-specialist` in code review.
+
+### Do not extend this prototype
+
+Per `.claude/rules/prototype-code.md`, the production code is rewritten from
+scratch — this directory is preserved only as a reference for the GDD authors
+and the architecture design.

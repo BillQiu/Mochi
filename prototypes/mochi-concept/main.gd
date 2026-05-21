@@ -68,7 +68,7 @@ var eye_right_white: Node2D
 var eye_right_pupil: Polygon2D
 var lever_arm: Polygon2D
 var lever_handle: Node2D                    # circle drawn manually
-var lever_handle_visual: Polygon2D
+var lever_handle_visual: Node2D
 var output_tray: Polygon2D
 var silhouette_node: Node2D
 var product_node: Node2D
@@ -291,19 +291,19 @@ func _make_tone(freq: float, duration: float, kind: String) -> AudioStreamWAV:
 				v = sin(t * freq * TAU) * env + 0.3 * sin(t * freq * 0.5 * TAU) * env
 			"noise":
 				# Crush rumble: filtered noise + low rumble + small attack peak
-				var attack := clamp(t / 0.05, 0.0, 1.0)
-				var decay := 1.0 - clamp((t - 0.05) / max(duration - 0.05, 0.001), 0.0, 1.0)
+				var attack := clampf(t / 0.05, 0.0, 1.0)
+				var decay := 1.0 - clampf((t - 0.05) / maxf(duration - 0.05, 0.001), 0.0, 1.0)
 				env = attack * decay
-				var noise := rng.randf_range(-1.0, 1.0)
+				var noise_sample := rng.randf_range(-1.0, 1.0)
 				var rumble := sin(t * 80.0 * TAU) * 0.6
-				v = (noise * 0.5 + rumble * 0.5) * env
+				v = (noise_sample * 0.5 + rumble * 0.5) * env
 			"ding":
 				env = exp(-t * 5.0)
 				var harmonic := sin(t * freq * TAU) + 0.5 * sin(t * freq * 2.0 * TAU)
 				v = harmonic * env * 0.6
 			_:
 				v = 0.0
-		var sample := int(clamp(v, -1.0, 1.0) * 32000)
+		var sample := int(clampf(v, -1.0, 1.0) * 32000)
 		bytes.encode_s16(i * 2, sample)
 
 	var stream := AudioStreamWAV.new()
@@ -458,10 +458,10 @@ func _draw_product(shape_idx: int, color: Color) -> void:
 	product_node.add_child(_draw_shape(PRODUCT_SHAPES[shape_idx], color))
 
 func _draw_shape(shape: String, color: Color) -> Node2D:
-	var wrap := Node2D.new()
+	var wrapper := Node2D.new()
 	match shape:
 		"circle":
-			wrap.add_child(_make_circle(Vector2.ZERO, 40, color))
+			wrapper.add_child(_make_circle(Vector2.ZERO, 40, color))
 		"star":
 			var p := Polygon2D.new()
 			p.color = color
@@ -471,13 +471,13 @@ func _draw_shape(shape: String, color: Color) -> Node2D:
 				var r: float = 44.0 if i % 2 == 0 else 18.0
 				pts.append(Vector2(cos(a), sin(a)) * r)
 			p.polygon = pts
-			wrap.add_child(p)
+			wrapper.add_child(p)
 		"heart":
 			# Approximate heart with two circles + triangle
 			var c1 := _make_circle(Vector2(-15, -8), 22, color)
 			var c2 := _make_circle(Vector2(15, -8), 22, color)
-			wrap.add_child(c1)
-			wrap.add_child(c2)
+			wrapper.add_child(c1)
+			wrapper.add_child(c2)
 			var tri := Polygon2D.new()
 			tri.color = color
 			tri.polygon = PackedVector2Array([
@@ -485,8 +485,8 @@ func _draw_shape(shape: String, color: Color) -> Node2D:
 				Vector2(32, 0),
 				Vector2(0, 38),
 			])
-			wrap.add_child(tri)
-	return wrap
+			wrapper.add_child(tri)
+	return wrapper
 
 # ── Input ──────────────────────────────────────────────────────────────────
 
@@ -502,7 +502,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		var mm := event as InputEventMouseMotion
 		if dragging and state == State.DRAGGING:
 			var delta := mm.position.y - drag_start_mouse_y
-			lever_offset = clamp(
+			lever_offset = clampf(
 				drag_start_lever_offset + delta,
 				LEVER_REST_Y,
 				LEVER_PULL_MAX
