@@ -139,7 +139,20 @@ formulas: []
 #
 # Required fields: name, status, source, referenced_by, value, unit, added
 
-constants: []
+constants:
+  - name: min_touch_target_px
+    status: active
+    source: design/gdd/input-system.md    # Formula 2 — authoritative definition
+    referenced_by:
+      - design/gdd/input-system.md
+      # Silhouette Reveal, Scene Composition, Accessibility System will append themselves here
+    value: 88
+    unit: logical_px
+    notes: "At 2x Retina (iPhone SE) design baseline. Derived from iOS HIG 44pt × 2x scale factor.
+      All interactive touch targets (silhouette, buttons, hot zones) must meet this floor.
+      Accessibility System (v1.0) audits compliance."
+    added: 2026-05-21
+    revised: ""
 
 # Example:
 #
