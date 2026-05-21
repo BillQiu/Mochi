@@ -29,8 +29,8 @@ The game's pillars constrain everything:
 | 1 | Persistence System | Persistence | MVP | **Designed** (pending review) | design/gdd/persistence-system.md | — |
 | 2 | Input System (inferred) | Core | MVP | **Designed** (pending review) | design/gdd/input-system.md | — |
 | 3 | Audio System | Audio | MVP | **Designed** (pending review) | design/gdd/audio-system.md | — |
-| 4 | Haptic System | Core | MVP | Not Started | design/gdd/haptic-system.md | — |
-| 5 | Mobile App Lifecycle (inferred) | Core | MVP | Not Started | design/gdd/mobile-app-lifecycle.md | — |
+| 4 | Haptic System | Core | MVP | **Designed** (pending review) | design/gdd/haptic-system.md | — |
+| 5 | Mobile App Lifecycle (inferred) | Core | MVP | **Designed** (pending review) | design/gdd/mobile-app-lifecycle.md | — |
 | 6 | Mochi Character System | Gameplay | MVP | Not Started | design/gdd/mochi-character.md | Audio, Mobile Lifecycle |
 | 7 | Text Input System | Gameplay | MVP | Not Started | design/gdd/text-input.md | Input, Persistence, Mobile Lifecycle |
 | 8 | Lever Interaction System | Gameplay | MVP | Not Started | design/gdd/lever-interaction.md | Input, Audio, Haptic, Juice Cookbook |
@@ -167,10 +167,10 @@ Wave 1-6 design GDDs sequentially within each wave but **systems within a wave c
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 17 |
-| Design docs started | 3 |
+| Design docs started | 5 |
 | Design docs reviewed | 0 |
 | Design docs approved | 0 |
-| MVP systems designed | 3/15 |
+| MVP systems designed | 5/15 |
 | v1.0 systems designed | 0/2 |
 
 ---

@@ -36,7 +36,7 @@
 #   Sections: entities | items | formulas | constants
 #   Each entry: name, status, source, referenced_by[], attributes{}, added, revised
 
-version: 1
+version: 2
 last_updated: "2026-05-21"
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
@@ -174,6 +174,7 @@ constants:
     referenced_by:
       - design/gdd/audio-system.md
       - design/gdd/lever-interaction.md   # 摇杆越过触发阈值时调用
+      - design/gdd/haptic-system.md       # Haptic Event Catalog lever_lock 同步对位
     value: "lever_pull"
     unit: string_key
     added: "2026-05-21"
@@ -185,6 +186,7 @@ constants:
     referenced_by:
       - design/gdd/audio-system.md
       - design/gdd/shred-process.md
+      - design/gdd/haptic-system.md
     value: "shred_start"
     unit: string_key
     added: "2026-05-21"
@@ -196,6 +198,7 @@ constants:
     referenced_by:
       - design/gdd/audio-system.md
       - design/gdd/shred-process.md
+      - design/gdd/haptic-system.md       # Haptic shred_pulse 节奏须与此循环 BPM 对位（Q-3）
     value: "shred_loop"
     unit: string_key
     notes: "循环键，需用 play_loop()/stop_loop() 而非 play()"
@@ -208,6 +211,7 @@ constants:
     referenced_by:
       - design/gdd/audio-system.md
       - design/gdd/shred-process.md
+      - design/gdd/haptic-system.md
     value: "shred_end"
     unit: string_key
     added: "2026-05-21"
@@ -219,6 +223,7 @@ constants:
     referenced_by:
       - design/gdd/audio-system.md
       - design/gdd/silhouette-reveal.md
+      - design/gdd/haptic-system.md
     value: "reveal_pop"
     unit: string_key
     added: "2026-05-21"
@@ -230,6 +235,7 @@ constants:
     referenced_by:
       - design/gdd/audio-system.md
       - design/gdd/silhouette-reveal.md
+      - design/gdd/haptic-system.md
     value: "product_land"
     unit: string_key
     added: "2026-05-21"
@@ -241,6 +247,7 @@ constants:
     referenced_by:
       - design/gdd/audio-system.md
       - design/gdd/shelf-collection.md
+      - design/gdd/haptic-system.md
     value: "shelf_add"
     unit: string_key
     added: "2026-05-21"
@@ -268,6 +275,225 @@ constants:
     value: -12
     unit: dB
     notes: "BGM 总线相对 SFX 总线的偏移量。安全 Tuning 范围 [-10, -18dB]。由 F-2 公式使用。"
+    added: "2026-05-21"
+    revised: ""
+
+  # ── Lifecycle 高层信号契约 ──────────────────────────────────────────────────
+  # 下游系统订阅这些信号触发相应行为。LifecycleService 是唯一发布方。
+  - name: lifecycle_signal_app_ready
+    status: active
+    source: design/gdd/mobile-app-lifecycle.md
+    referenced_by:
+      - design/gdd/mobile-app-lifecycle.md
+      # Mochi Character, Scene Composition, Onboarding 将追加自己
+    value: "app_ready"
+    unit: signal_name
+    notes: "App 冷启动完成、所有 Foundation Autoload 就绪时发出，整个进程只发出一次。"
+    added: "2026-05-21"
+    revised: ""
+
+  - name: lifecycle_signal_app_paused
+    status: active
+    source: design/gdd/mobile-app-lifecycle.md
+    referenced_by:
+      - design/gdd/mobile-app-lifecycle.md
+      - design/gdd/haptic-system.md       # Haptic 订阅切到 BACKGROUNDED 状态
+      # Mochi Character, Scene Composition, Text Input 将追加自己
+    value: "app_paused"
+    unit: signal_name
+    notes: "PAUSED 通知经过 RESUME_DEBOUNCE_MS 防抖确认后发出。瞬时切换不会触发。"
+    added: "2026-05-21"
+    revised: ""
+
+  - name: lifecycle_signal_app_resumed
+    status: active
+    source: design/gdd/mobile-app-lifecycle.md
+    referenced_by:
+      - design/gdd/mobile-app-lifecycle.md
+      - design/gdd/haptic-system.md       # Haptic 订阅恢复 READY 状态
+      # Mochi Character, Scene Composition, Text Input 将追加自己
+    value: "app_resumed"
+    unit: signal_name
+    notes: "仅在之前 app_paused 已发出（PAUSED_CONFIRMED 状态）时才会触发。Lifecycle 调用 InputService.release_text_mode() 后发出。"
+    added: "2026-05-21"
+    revised: ""
+
+  # ── Lifecycle 调节常量 ────────────────────────────────────────────────────
+  - name: lifecycle_resume_debounce_ms
+    status: active
+    source: design/gdd/mobile-app-lifecycle.md
+    referenced_by:
+      - design/gdd/mobile-app-lifecycle.md
+    value: 1000
+    unit: ms
+    notes: "PAUSED→RESUMED 防抖窗口。安全 Tuning 范围 0-5000。Formula 2 的核心常量。"
+    added: "2026-05-21"
+    revised: ""
+
+  - name: lifecycle_boot_timeout_ms
+    status: active
+    source: design/gdd/mobile-app-lifecycle.md
+    referenced_by:
+      - design/gdd/mobile-app-lifecycle.md
+    value: 5000
+    unit: ms
+    notes: "BOOTING 状态超时阈值。不是验收阈值，仅用于诊断报错。安全范围 3000-10000。"
+    added: "2026-05-21"
+    revised: ""
+
+  # ── Haptic 事件键（HapticSystem 接口契约）─────────────────────────────────
+  # 下游系统调用 Haptic.play("key") 时必须与这些键名一致。
+  # 采用 `<system>_<action>` 命名空间，与 sfx_* 视觉独立。
+  # MVP 全部映射到 UIImpactFeedbackGenerator 预设（无自定义波形）。
+  - name: haptic_lever_pull_start
+    status: active
+    source: design/gdd/haptic-system.md
+    referenced_by:
+      - design/gdd/haptic-system.md
+      - design/gdd/lever-interaction.md
+    value: "lever_pull_start"
+    unit: string_key
+    notes: "MVP 预设 = selection。玩家首次按下摇杆。"
+    added: "2026-05-21"
+    revised: ""
+
+  - name: haptic_lever_pull_progress
+    status: active
+    source: design/gdd/haptic-system.md
+    referenced_by:
+      - design/gdd/haptic-system.md
+      - design/gdd/lever-interaction.md
+    value: "lever_pull_progress"
+    unit: string_key
+    notes: "MVP 预设 = light。摇杆越过 50% / 75% 阈值。"
+    added: "2026-05-21"
+    revised: ""
+
+  - name: haptic_lever_lock
+    status: active
+    source: design/gdd/haptic-system.md
+    referenced_by:
+      - design/gdd/haptic-system.md
+      - design/gdd/lever-interaction.md
+    value: "lever_lock"
+    unit: string_key
+    notes: "MVP 预设 = heavy。Pillar 1 核心触觉时刻，必须与 sfx_lever_pull 在 ≤ 30 ms 内同步。"
+    added: "2026-05-21"
+    revised: ""
+
+  - name: haptic_shred_start
+    status: active
+    source: design/gdd/haptic-system.md
+    referenced_by:
+      - design/gdd/haptic-system.md
+      - design/gdd/shred-process.md
+    value: "shred_start"
+    unit: string_key
+    notes: "MVP 预设 = medium。"
+    added: "2026-05-21"
+    revised: ""
+
+  - name: haptic_shred_pulse
+    status: active
+    source: design/gdd/haptic-system.md
+    referenced_by:
+      - design/gdd/haptic-system.md
+      - design/gdd/shred-process.md
+    value: "shred_pulse"
+    unit: string_key
+    notes: "MVP 预设 = light。节奏由 shred_pulse_interval_s 公式控制（默认 0.4 s/次）。"
+    added: "2026-05-21"
+    revised: ""
+
+  - name: haptic_shred_end
+    status: active
+    source: design/gdd/haptic-system.md
+    referenced_by:
+      - design/gdd/haptic-system.md
+      - design/gdd/shred-process.md
+    value: "shred_end"
+    unit: string_key
+    notes: "MVP 预设 = light。"
+    added: "2026-05-21"
+    revised: ""
+
+  - name: haptic_reveal_pop
+    status: active
+    source: design/gdd/haptic-system.md
+    referenced_by:
+      - design/gdd/haptic-system.md
+      - design/gdd/silhouette-reveal.md
+    value: "reveal_pop"
+    unit: string_key
+    notes: "MVP 预设 = selection。揭晓瞬间，与 sfx_reveal_pop 同步。"
+    added: "2026-05-21"
+    revised: ""
+
+  - name: haptic_product_land
+    status: active
+    source: design/gdd/haptic-system.md
+    referenced_by:
+      - design/gdd/haptic-system.md
+      - design/gdd/silhouette-reveal.md
+    value: "product_land"
+    unit: string_key
+    notes: "MVP 预设 = light。"
+    added: "2026-05-21"
+    revised: ""
+
+  - name: haptic_shelf_add
+    status: active
+    source: design/gdd/haptic-system.md
+    referenced_by:
+      - design/gdd/haptic-system.md
+      - design/gdd/shelf-collection.md
+    value: "shelf_add"
+    unit: string_key
+    notes: "MVP 预设 = selection。"
+    added: "2026-05-21"
+    revised: ""
+
+  - name: haptic_mochi_blink
+    status: active
+    source: design/gdd/haptic-system.md
+    referenced_by:
+      - design/gdd/haptic-system.md
+      - design/gdd/mochi-character.md
+    value: "mochi_blink"
+    unit: string_key
+    notes: "MVP 预设 = selection。由 Mochi 角色状态机决定，偶发。"
+    added: "2026-05-21"
+    revised: ""
+
+  # ── 触觉与音频时序常量 ─────────────────────────────────────────────────────
+  - name: audio_haptic_sync_window_ms
+    status: active
+    source: design/gdd/haptic-system.md
+    referenced_by:
+      - design/gdd/haptic-system.md
+      - design/gdd/audio-system.md         # AudioSystem 同帧调用顺序约束
+      - design/gdd/lever-interaction.md
+      - design/gdd/shred-process.md
+      - design/gdd/silhouette-reveal.md
+      - design/gdd/shelf-collection.md
+      - design/gdd/juice-cookbook.md
+    value: 30
+    unit: ms
+    notes: "人类对触听同步察觉阈值。Audio 先 emit，Haptic 在此窗口内 emit。安全 Tuning 范围 [10, 50]。F-1 公式使用。依据 Spence 2007 + Apple HIG。"
+    added: "2026-05-21"
+    revised: ""
+
+  - name: shred_pulse_interval_s
+    status: active
+    source: design/gdd/haptic-system.md
+    referenced_by:
+      - design/gdd/haptic-system.md
+      - design/gdd/shred-process.md
+      - design/gdd/audio-system.md         # shred_loop BGM BPM 须与此对齐（Open Question Q-3）
+      - design/gdd/juice-cookbook.md
+    value: 0.4
+    unit: seconds
+    notes: "shred_pulse 触觉间隔。F-2 公式输入。安全范围 [0.3, 0.6]。Juice Cookbook 完成后须回评是否与 Audio shred_loop BPM 对齐。"
     added: "2026-05-21"
     revised: ""
 
