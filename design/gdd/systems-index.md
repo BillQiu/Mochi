@@ -38,7 +38,7 @@ The game's pillars constrain everything:
 | 10 | Product System | Economy | MVP | Not Started | design/gdd/product-system.md | Persistence |
 | 11 | Silhouette Reveal System | Gameplay | MVP | Not Started | design/gdd/silhouette-reveal.md | Product, Input, Audio, Haptic, Juice Cookbook |
 | 12 | Shelf Collection System | Gameplay | MVP | Not Started | design/gdd/shelf-collection.md | Persistence, Product |
-| 13 | Game Feel / Juice Cookbook ⭐ | Meta | MVP | Not Started | design/gdd/juice-cookbook.md *(type: cookbook, not GDD)* | Audio, Haptic |
+| 13 | Game Feel / Juice Cookbook ⭐ | Meta | MVP | Designed (2026-05-22, pending /design-review) | design/gdd/juice-cookbook.md | Audio, Haptic |
 | 14 | Onboarding / First-Run System (inferred) | Meta | MVP | Not Started | design/gdd/onboarding.md | Mochi, Text Input, Lever, Product, Silhouette, Shelf, Persistence |
 | 15 | Scene Composition / Navigation (inferred) | UI | MVP | Not Started | design/gdd/scene-composition.md | Persistence |
 | 16 | Accessibility System (inferred) | Meta | v1.0 | Not Started | design/gdd/accessibility-system.md | Input, Text Input, Mochi, Scene Composition, Juice Cookbook |
@@ -122,7 +122,7 @@ Wave 1-6 design GDDs sequentially within each wave but **systems within a wave c
 | 4 | Haptic System | MVP | Foundation | godot-gdextension-specialist (likely) + technical-director | L | iOS CoreHaptics may need GDExtension wrap. Highest technical risk. |
 | 5 | Mobile App Lifecycle | MVP | Foundation | godot-specialist | S | Background save, IME interruption, cold start. May qualify for quick-spec instead of full GDD. |
 | **─── Wave 2: Juice Legislation ⭐ ───** | | | | | | |
-| 6 | Juice Cookbook | MVP | Feature | art-director + audio-director + technical-artist | S | NOT a full GDD — short reference doc (~500 words) defining principles, vocabulary, and forbidden patterns. All later Core GDDs must reference. |
+| 6 | Juice Cookbook | MVP | Feature | art-director + audio-director + technical-artist (lean 实际 spawn: systems-designer + qa-lead + art-director + 破例 game-designer/technical-artist) | M (实际 8 节完整 GDD ~850 行) | 升级为完整 8 节 GDD（2026-05-22 用户决策）。含 7 个 JC-R 配方 ID + F-1..F-7 公式 + VA-1..VA-7 视觉/音频边界 + 13 AC。Wave 3-6 硬引用合同（code review BLOCKING）。 |
 | **─── Wave 3: Character & Text ───** | | | | | | |
 | 7 | Mochi Character System | MVP | Core | narrative-director + game-designer | M | Personality logic: idle behavior, ≤8 expressions, "克制工匠" reaction rules for heavy content. |
 | 8 | Text Input System | MVP | Core | game-designer + ux-designer | M | Min-length, repeat rejection, 24h content dedup, IME UX. |
@@ -167,11 +167,13 @@ Wave 1-6 design GDDs sequentially within each wave but **systems within a wave c
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 17 |
-| Design docs started | 5 |
-| Design docs reviewed (initial + 2026-05-22 v3 cross-review) | 5/5 Reviewed |
+| Design docs started | 6 (Wave 1: 5 Foundation + Wave 2: Juice Cookbook) |
+| Design docs reviewed (initial + 2026-05-22 v3 cross-review) | 5/5 Wave 1 Reviewed |
+| Design docs designed pending review | 1 (juice-cookbook.md，2026-05-22) |
 | Wave 1 → Wave 2 unlock gate | ✅ PASS（附条件已解除 2026-05-22：ADR-0001/0002 均 Accepted，commit `7689b9c`） |
+| Wave 2 Juice Legislation 状态 | ✅ Cookbook 8 节 GDD 完成（升级路径，~850 行），pending /design-review |
 | BLOCKING resolved 2026-05-22 across 3 commits | 11 独立问题 (44bf308: 4 / 9568a3f: 3 + 4 Warnings) |
-| MVP systems designed | 5/15 |
+| MVP systems designed | 6/15 |
 | v1.0 systems designed | 0/2 |
 
 ### Wave 1 修订路径决策（2026-05-21 → 2026-05-22 收口）
@@ -211,6 +213,8 @@ See `prototypes/mochi-concept/README.md` Findings for full context.
 - [x] `/review-all-gdds` v3（2026-05-22 三轮 cross-review；C1/C2/C3 BLOCKING + C4/C5/C6/C7 Warnings 全部 commit `9568a3f` 修复）
 - [x] `/gate-check pre-production` Wave 1→2 unlock checkpoint：**PASS（附条件 → 已解除：两 ADR 已 Accepted）**
 - [x] `/architecture-review adr-0001 adr-0002`（10/10 TR 覆盖、0 conflict、首次登记 tr-registry.yaml）
-- [ ] **下一步：Wave 2 `/design-system juice-cookbook`** — ~500 字 reference doc（cookbook 类型，非完整 GDD），是 Wave 3-6 所有 Core gameplay GDD 的前置
-- [ ] Then Wave 3-6: Mochi Character / Text Input / Lever / Shred / Product / Silhouette / Shelf / Onboarding / Scene Composition（5 Wave）
+- [x] **Wave 2 `/design-system juice-cookbook`** — ✅ 完成 8 节完整 GDD（升级路径），含 7 个 JC-R 配方 ID + F-1..F-7 公式 + VA-1..VA-7 视觉/音频边界 + 13 条 AC（2026-05-22）
+- [ ] **下一步推荐：独立 session 跑 `/design-review design/gdd/juice-cookbook.md`** — 跨 Wave 3-6 硬引用合同，质量门禁最严
+- [ ] 可并行：`/consistency-check`（验证 registry 8 新 juice_* constants + juice_impact_sync_t formula 引用关系闭环）
+- [ ] Then Wave 3-6: Mochi Character / Text Input / Lever / Shred / Product / Silhouette / Shelf / Onboarding / Scene Composition（5 Wave）。每个 Core gameplay GDD 的 Tuning Knobs 必须 cite `JC-R1..R7` 对应配方 ID（Cookbook 硬引用合同，code review BLOCKING）
 - [ ] 全 MVP GDD 完成 → `/create-architecture` → 真 Pre-Production gate → `/vertical-slice` → enter Production

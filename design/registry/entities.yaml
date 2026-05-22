@@ -37,7 +37,7 @@
 #   Each entry: name, status, source, referenced_by[], attributes{}, added, revised
 
 version: 2
-last_updated: "2026-05-22"  # v3 cross-review: added audio_lead_ms + audio_pipeline_latency_ms + haptic_pipeline_latency_ms (C5 fix)
+last_updated: "2026-05-22"  # Juice Cookbook 完成: 8 juice_* constants + juice_impact_sync_t formula (Wave 2 wrap-up)
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
 # Named game-world objects: enemies, NPCs, characters, factions, bosses.
@@ -118,6 +118,21 @@ formulas:
     expression: "v > 0 ? 20 * log10(v) : -80.0"
     notes: "v=0 返回 -80dB 静音哨兵值（避免 log(0)=-∞）。输出传入 AudioServer.set_bus_volume_db()。Settings UI（v1.0）会引用此公式显示音量百分比。"
     added: "2026-05-21"
+    revised: ""
+
+  # ── Juice Cookbook 同步契约公式 ──────────────────────────────────────────────
+  - name: juice_impact_sync_t
+    status: active
+    source: design/gdd/juice-cookbook.md   # F-1
+    referenced_by:
+      - design/gdd/juice-cookbook.md
+      # Lever Interaction (#8) / Shred Process (#9) / Silhouette Reveal (#11) / Shelf Collection (#12) / Onboarding (#15) 将追加自己
+    variables:
+      - audio_onset_t_ms   # float [0, ∞) — AudioSystem.play() 调用时刻（ms，自 hook signal emit 起计）
+    output_range: [35, Infinity]
+    expression: "audio_onset_t_ms + audio_lead_ms"
+    notes: "Cookbook F-1。视觉 Impact 相位中心时刻 = audio onset + audio_lead_ms (=35 ms)。视觉峰值帧须落 [t_i - 15, t_i + 15] (half audio_haptic_sync_window_ms) 窗口内。所有 7 配方 JC-R1..R7 共享此公式。"
+    added: "2026-05-22"
     revised: ""
 
 # Example:
@@ -542,6 +557,104 @@ constants:
     notes: "shred_pulse 触觉间隔。F-2 公式输入。安全范围 [0.3, 0.5]（上界由 0.6 收紧，> 0.5 失去机器存在感）。Juice Cookbook 完成后须回评是否与 Audio shred_loop BPM 对齐。# was: [0.3, 0.6] before 2026-05-22 Haptic GDD revision"
     added: "2026-05-21"
     revised: "2026-05-22"
+
+  # ── Juice Cookbook Invariants（Cookbook-locked，下游不得覆盖）─────────────
+  # 所有 juice_* 常量见 juice-cookbook.md Section "Tuning Knobs → Cookbook-locked invariants"
+  - name: juice_silence_min_ms
+    status: active
+    source: design/gdd/juice-cookbook.md   # Core Rule 5
+    referenced_by:
+      - design/gdd/juice-cookbook.md
+      # Wave 3-6 GDD 调用方将追加（Lever / Shred / Silhouette / Shelf / Onboarding）
+    value: 100
+    unit: ms
+    notes: "Cookbook Core Rule 5：每条配方 Follow-through 后必须有 ≥ 100 ms 静默尾，防止配方之间黏在一起。配方间物理隔离时间。下游状态机若发现违反此约束，必须 gate 新 hook signal（见 Edge Case 第 3 类）。"
+    added: "2026-05-22"
+    revised: ""
+
+  - name: juice_active_particles_max
+    status: active
+    source: design/gdd/juice-cookbook.md   # F-4
+    referenced_by:
+      - design/gdd/juice-cookbook.md
+      # Shred Process (#9) / Silhouette Reveal (#11) 将追加（粒子源拥有方）
+    value: 48
+    unit: count
+    notes: "Cookbook F-4 最大瞬时活跃 CPUParticles2D 上限。Godot 4.6 Mobile renderer iOS 安全上限，technical-artist 给出。MVP 实测路径 ≤ 20；v1.0 含 JC-R5 rare reveal ≤ 36；> 48 触发 Cookbook ADR amend。"
+    added: "2026-05-22"
+    revised: ""
+
+  - name: juice_total_loop_budget_ms
+    status: active
+    source: design/gdd/juice-cookbook.md   # F-5
+    referenced_by:
+      - design/gdd/juice-cookbook.md
+      # Lever (#8) / Shred (#9) / Silhouette (#11) / Shelf (#12) / Onboarding (#15) 将追加
+    value: 1500
+    unit: ms
+    notes: "Cookbook F-5 单循环 juice 总时长上限（不含 Silence 尾 + JC-R4 间隔）。Default 配方计算 = 1260 ms ✅，余量 240 ms。anti-bloat 设计：超出会挤压玩家'看完粉碎'的呼吸时间。下游 GDD 调整配方时长须重新代入 F-5 验证。"
+    added: "2026-05-22"
+    revised: ""
+
+  - name: juice_squash_compress_min
+    status: active
+    source: design/gdd/juice-cookbook.md   # F-3 Pillar 4 floor
+    referenced_by:
+      - design/gdd/juice-cookbook.md
+      # Lever (#8) / Silhouette (#11) / Shelf (#12) / Mochi Character (#6, soft) 将追加
+    value: 0.5
+    unit: scalar
+    notes: "Cookbook F-3 s_compressed 下限。Pillar 4 Cute But Weighted 防'塌'约束——低于 0.5 视觉上像物体被压碎，违反 cozy 基调。下游若需 < 0.5 走 ADR amend。"
+    added: "2026-05-22"
+    revised: ""
+
+  - name: juice_squash_overshoot_max
+    status: active
+    source: design/gdd/juice-cookbook.md   # F-3 Pillar 4 ceiling
+    referenced_by:
+      - design/gdd/juice-cookbook.md
+      # Lever (#8) / Silhouette (#11) / Shelf (#12) / Mochi Character (#6, soft) 将追加
+    value: 1.25
+    unit: scalar
+    notes: "Cookbook F-3 s_overshoot 上限。Pillar 4 防'橡皮泥/卡通过度'约束——高于 1.25 失去机器质感。JC-R5 用 1.2 接近上限；Onboarding large 变体允许触达上限 1.25。下游若需 > 1.25 走 ADR amend。"
+    added: "2026-05-22"
+    revised: ""
+
+  - name: juice_shake_amp_max_px
+    status: active
+    source: design/gdd/juice-cookbook.md   # F-2 Pillar 4 ceiling
+    referenced_by:
+      - design/gdd/juice-cookbook.md
+      # Lever (#8) / Shelf (#12) 将追加
+    value: 8
+    unit: logical_px
+    notes: "Cookbook F-2 base_amp_px 上限。Pillar 4 防 Vlambeer 暴力感约束——超 8 px 屏震违反 cozy 定调（参考 Nuclear Throne 20+ px 是反面案例）。JC-R2 用 4 px / JC-R7 用 2 px。下游 GDD 若需 > 8 走 ADR amend。"
+    added: "2026-05-22"
+    revised: ""
+
+  - name: juice_anticipation_ratio_min
+    status: active
+    source: design/gdd/juice-cookbook.md   # F-7
+    referenced_by:
+      - design/gdd/juice-cookbook.md
+      # Wave 3-6 GDD 派生新配方时引用
+    value: 0.05
+    unit: scalar
+    notes: "Cookbook F-7 anticipation_ratio 下限。低于 0.05 时反向预备不可见，失去'蓄力'语义。F-7 主要用作 v1.0+ 新配方派生工具与范围验证器。"
+    added: "2026-05-22"
+    revised: ""
+
+  - name: juice_anticipation_ratio_max
+    status: active
+    source: design/gdd/juice-cookbook.md   # F-7
+    referenced_by:
+      - design/gdd/juice-cookbook.md
+      # Wave 3-6 GDD 派生新配方时引用
+    value: 0.15
+    unit: scalar
+    notes: "Cookbook F-7 anticipation_ratio 上限。高于 0.15 时反向预备过度，看起来像'卡了/读条'，违反 Pillar 2 节奏感。F-7 范围验证器拒绝任何超 0.15 的下游配方参数。"
+    added: "2026-05-22"
+    revised: ""
 
 # Example:
 #
