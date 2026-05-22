@@ -183,6 +183,19 @@ constants:
 
   # ── SFX 事件键（AudioSystem 接口契约）──────────────────────────────────────
   # 下游系统调用 AudioSystem.play("key") 时必须与这些键名一致。
+  - name: sfx_lever_drag
+    status: active
+    source: design/audio/sfx-selection-spec.md
+    referenced_by:
+      - design/gdd/audio-system.md             # _valid_loop_keys 白名单成员
+      - design/gdd/lever-interaction.md        # 拖拽阶段持续摩擦音
+      - design/audio/sfx-selection-spec.md     # §3.7 lever_drag 完整 spec
+    value: "lever_drag"
+    unit: string_key
+    notes: "循环键，需用 play_loop()/stop_loop() 而非 play()；无 Haptic 对位（拖拽阶段不配触觉）；起音放宽至 ≤ 50 ms 允许轻 fade-in"
+    added: "2026-05-22"
+    revised: ""
+
   - name: sfx_lever_pull
     status: active
     source: design/gdd/audio-system.md
