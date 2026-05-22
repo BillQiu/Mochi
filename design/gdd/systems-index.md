@@ -38,7 +38,7 @@ The game's pillars constrain everything:
 | 10 | Product System | Economy | MVP | Not Started | design/gdd/product-system.md | Persistence |
 | 11 | Silhouette Reveal System | Gameplay | MVP | Not Started | design/gdd/silhouette-reveal.md | Product, Input, Audio, Haptic, Juice Cookbook |
 | 12 | Shelf Collection System | Gameplay | MVP | Not Started | design/gdd/shelf-collection.md | Persistence, Product |
-| 13 | Game Feel / Juice Cookbook ⭐ | Meta | MVP | NEEDS REVISION (2026-05-22 Pass 1: 12 BLOCKING + 12 R；Pass 2 cross-review: +5 BLOCKING [B13 WCAG / B14 iOS reduce motion / B15 freeze 技术错误 / B16 5% 覆盖度 / B17 audio specs 跨文档裂缝] + 2 R + creative-director 提议拆 Layer 1/2；详见 design/gdd/reviews/juice-cookbook-review-log.md) | design/gdd/juice-cookbook.md | Audio, Haptic |
+| 13 | Game Feel / Juice Cookbook ⭐ | Meta | MVP | **MAJOR REVISION NEEDED — 用户选 Layer 1/2 拆分路径** (2026-05-22 Pass 1: 12 BLOCKING + 12 R；Pass A commit ba160fd 落地 12+R11+R12；Pass A re-review verdict 维持 MAJOR REVISION — net 新 11 BLOCKING 含 R4 戏剧弧线倒置升为单点最致命 + B10/B1 形式修复未真解决 + 新引入 F-3 vs F-1 隐式禁区；Pass 2 +5 BLOCKING [B13/B14/B15/B16/B17] 仍未触；creative-director 推荐 Layer 1 Contract + Layer 2 Recipes 拆分；详见 design/gdd/reviews/juice-cookbook-review-log.md) | design/gdd/juice-cookbook.md | Audio, Haptic |
 | 14 | Onboarding / First-Run System (inferred) | Meta | MVP | Not Started | design/gdd/onboarding.md | Mochi, Text Input, Lever, Product, Silhouette, Shelf, Persistence |
 | 15 | Scene Composition / Navigation (inferred) | UI | MVP | Not Started | design/gdd/scene-composition.md | Persistence |
 | 16 | Accessibility System (inferred) | Meta | v1.0 | Not Started | design/gdd/accessibility-system.md | Input, Text Input, Mochi, Scene Composition, Juice Cookbook |

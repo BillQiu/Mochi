@@ -4,6 +4,79 @@
 
 ---
 
+## Review — 2026-05-22 (Pass A re-review, since-last-review) — Verdict: MAJOR REVISION NEEDED
+
+**Scope signal**: XL（creative-director 推荐结构性拆分）
+**Mode**: Full（4 specialists in parallel + creative-director synthesis）
+**Specialists**: game-designer / systems-designer / qa-lead / creative-director
+**Findings**: 11 net 新 BLOCKING + 6 Recommended（在 Pass 1 之外）
+**Prior verdict resolved**: No — Pass 1 标的 12 BLOCKING 中 R11/R12 方向对（实质前进）；其余 5 项为"形式修复"（output 改但 input 未改、anchor 重定义但测量未验、AC 拆但语义重复）；R4 戏剧弧线倒置（Pass 1 最严重 design 缺陷）原封不动
+**File state**: design/gdd/juice-cookbook.md commit ba160fd
+
+### Cross-domain 元发现（creative-director synthesis）
+
+**Pass A 暴露"形式修复 (formal patching)"模式**，在 5 个 BLOCKING 上重复出现：
+- B1 (F-1 锚点)：从 hitstop 重定义到 t_emit，但测量方法 `get_time_to_next_mix()` 自身 ±10-20ms 抖动单独可能吃光 ±15ms 容差预算（systems-designer + qa-lead 一致）
+- B10 (F-7)：Output Range 抬到 [0.5, 1.8]，但 input ranges 没动——`amplitude_min × ratio_min = 0.10 < 0.5` 内部仍不一致（systems-designer #4）
+- R4 (戏剧弧线倒置)：JC-R2 加"三方共振齐发"地板，仅解决音量底线，未改 lever_lock peak < reveal_pop peak 的层级关系（game-designer #1）
+- AC-01 拆分：AC-01b 语义上和 AC-01a 完全相同，零增量信息（qa-lead #2）
+- AC-13/14 加 grep：grep 无法验证语义合规（heavy_content 别名绕过；amount≥8 数值地板验不了）（qa-lead #3 #4）
+
+**Pass A 在修 F-1 时新引入一道暗坑**：F-3 T1 ∈ [16,100]ms 与 F-1 ±15ms 窗口形成隐式禁区，~50% 合法 T1 值在 F-1 上违法，无文档说明（systems-designer #5 新发现）。
+
+### 11 net 新 BLOCKING（按致命度排序）
+
+1. **R4 戏剧弧线倒置**[game-designer + creative-director 升为单点最致命]：Pass 1 标记的最严重 design 缺陷在 Pass A 中原封不动；修订时机是 Wave 2（Wave 3 无补救路径）
+2. **F-7 数学一致性 (B10) 未真修复**[systems-designer #4]：input ranges 未调整，formula 内部仍矛盾
+3. **F-3 T1 vs F-1 隐式禁区**[systems-designer #5, NEW]：Pass A 修订时新引入；~50% T1 取值违反 F-1，无文档说明
+4. **F-1 测量噪声**[systems-designer #1 + qa-lead #1]：`AudioServer.get_time_to_next_mix()` ±10-20ms 单独吃光 ±15ms 预算
+5. **AC-01a 不可执行**[qa-lead #1]：API 用法未明 + JC-R1 过度适用 + ±5ms 精度无保障
+6. **AC-01b 与 AC-01a 语义重复**[qa-lead #2]：都测 t_emit 对齐；应改测 BT 主观体验
+7. **AC-13 grep 关键字脆弱**[qa-lead #3]：3 英文词易被合法别名绕过；GUT mock 依赖 Wave 3 不存在的 Lever 类
+8. **AC-14 grep 无法验数值不等式**[qa-lead #4]：amount ≥ 8 字面 grep 无法验；.tscn 节点验证错放 .gd
+9. **VA-1..VA-6 + Onboarding R12 enhanced 仍零 AC 覆盖**[qa-lead #5]：Pass 1 R9 未关闭
+10. **JC-R3+R4 Required Minimum 缺跨配方联合下限 + audio dB 基准**[game-designer #4]
+11. **§B "100% 时间"承诺 vs 5% 覆盖**[game-designer #3]：Pass A R11 加哲学声明未加 Out-of-Scope 范围限定（Pass 2 B16 verified）
+
+### R12 vs Pass 2 R14 — 最终裁决
+
+**Verdict: DELETE JC-R5 medium→large 偏离，KEEP JC-R7 enhanced**（4 specialists 独立一致投票）
+
+理由：
+- Pillar 2 一致性是 GDD 本身立法——allow large 偏离违反自己声明的设计支柱
+- 调用路径未解决：4 位专家指出 R5 触发条件（triple_combo / high_value_reveal / 稀有事件）在 systems-index 无对应系统设计，是悬挂钩子
+- Accessibility 反向歧视：reduce-motion 用户得到 large × factor 低于 standard 玩家的 medium（违反 WCAG equivalent experience 原则）
+- R12 JC-R7 enhanced 是不同类偏离：递进脚手架（Csikszentmihalyi）、调用路径清晰（first_run_shelf_add_count）、降级路径自然 — 三者皆 R5 large 没有的优点
+- 若仍想保留"稀有事件加码"，建议在 JC-R3 `n_pulses`（节奏维度）而非 JC-R5 振幅（强度维度）做偏离
+
+### 6 Recommended
+
+R-i 主观验收基准（80% 首次玩家 10 pulls 内无"无聊/没反应"）/ R-ii Onboarding 第三路径偏离 JC-R3 n_pulses / R-iii F-3 T1 上限显式约束 / R-iv F-4 公式逻辑错误（lifetime=interval Godot 实际无双批共存）但方向保守安全 / R-v F-5 inter-pulse 排除附"实际 juice 窗口 ~2860ms"参考 / R-vi AC-12 时序幻觉加 DEFERRED 标记
+
+### 最致命 Blocker 修订（Pass 1 → Pass A re-review）
+
+| 轮次 | 最致命 | 理由 |
+|---|---|---|
+| Pass 1 | B1 (F-1 anchor) | 测量基准缺失 → 整套同步公式不可执行 |
+| Pass A re-review | **R4 (戏剧弧线倒置)** | B1 是技术问题（Wave 3 真机校准可补救）；R4 是 Design 心智模型缺陷（Wave 2 不修则 Wave 3 全 GDD 跟着错）。Pass A "修"了 R4 但实际没动峰值关系——说明作者在改自己没读懂的东西 |
+
+### Creative Director 路径建议
+
+**反对继续 Pass B 补丁模式**——同一失败模式会复制，预测 5 轮后仍 REJECT。
+
+**结构性出路**：拆 Layer 1 (Contract, ~10-15 页, AC 全自动化) + Layer 2 (Recipes, ~30+ 页, 每 recipe 一节含主观评审)。两层在抽象层级 / 验收方式 / 读者画像 / 修改频率上都不同，强塞一个文档导致反复失败。
+
+**用户决策（2026-05-22 5:42pm）**：采纳拆分路径（Layer 1 Contract + Layer 2 Recipes）。
+
+### 文件链接
+
+- 评审对象: design/gdd/juice-cookbook.md (commit ba160fd, ~951 行 with Pass A changelog)
+- 评审报告: 本文件
+- 依赖文档: 同 Pass 1
+- 下一步: Layer 1/Layer 2 拆分提案 outline（新会话或当前会话）
+
+---
+
 ## Revision Pass A — 2026-05-22 (Pass 1 修订收口；Pass 2 之前完成)
 
 **Driver**: User decision "B1 → B2 → B5 → R11 → R12 → 其余 BLOCKING"（仅覆盖 Pass 1 项）
