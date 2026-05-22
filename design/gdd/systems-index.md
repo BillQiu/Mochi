@@ -169,7 +169,7 @@ Wave 1-6 design GDDs sequentially within each wave but **systems within a wave c
 | Total systems identified | 17 |
 | Design docs started | 5 |
 | Design docs reviewed (initial + 2026-05-22 v3 cross-review) | 5/5 Reviewed |
-| Wave 1 → Wave 2 unlock gate | ✅ PASS（附条件——ADR 推 Accepted 在 /vertical-slice 前） |
+| Wave 1 → Wave 2 unlock gate | ✅ PASS（附条件已解除 2026-05-22：ADR-0001/0002 均 Accepted，commit `7689b9c`） |
 | BLOCKING resolved 2026-05-22 across 3 commits | 11 独立问题 (44bf308: 4 / 9568a3f: 3 + 4 Warnings) |
 | MVP systems designed | 5/15 |
 | v1.0 systems designed | 0/2 |
