@@ -1,0 +1,22 @@
+# Godot 4
+godot/.godot/
+godot/android/
+godot/ios/
+godot/*.translation
+
+# Godot exports
+builds/
+exports/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Local Claude Code state
+.claude/settings.local.json
+.claude/sessions/
+.claude/jobs/
