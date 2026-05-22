@@ -4,6 +4,51 @@
 
 ---
 
+## Revision Pass A — 2026-05-22 (Pass 1 修订收口；Pass 2 之前完成)
+
+**Driver**: User decision "B1 → B2 → B5 → R11 → R12 → 其余 BLOCKING"（仅覆盖 Pass 1 项）
+**Mode**: Direct GDD edit（修订范围严格限定在 Pass 1 findings，未触 Pass 2 新增 B13-B17）
+**Files modified**: design/gdd/juice-cookbook.md (header changelog + Player Fantasy 内在张力 + Section C Required Minimum + F-1 重写 + States and Transitions + F-3/F-4/F-7 + Edge Cases + Dependencies + AC + Open Questions)
+
+### Pass 1 - 12 BLOCKING + 2 Recommended 落地状态
+
+| ID | 项 | 状态 | 落点 |
+|---|---|---|---|
+| B1 | F-1 锚点定义 (t_emit) + platform_latency 表 | ✅ Done | F-1 重写；新增表 5 行（iOS/Android × speaker/BT） |
+| B2 | F-3 Impact = T1 压缩帧（overshoot 归 Follow-through） | ✅ Done | States and Transitions 表 + F-3 同步窗口对齐子节 |
+| B3 | AC-01 拆分 a (speaker) / b (BT) | ✅ Done | AC-01a BLOCKING + AC-01b ADVISORY |
+| B4 | F-4 overlap_factor 公式 | ✅ Done | `floor(lifetime/interval) + 1`；JC-R4 = 2 ✅ |
+| B5 | JC-R4 实现路径 + Forbidden 矛盾 | ✅ Done | CPUParticles2D 节点池 5 节点 × amount=4；删除 emit_one_shot |
+| B6 | 粒子上限 SSOT (32/48/>48) | ✅ Done | Core Rule 7 + JC-R3 Forbidden + AC-11 全部对齐 F-4 表 |
+| B7 | 48 + blend mode 约束 | ✅ Done | F-4 表注：blend_add → 50% 上限；Production Sprint 0 profile flag |
+| B8 | Mobile renderer Forbidden 条件式 | ✅ Done | JC-R3/R4/R6 Forbidden 加 "如最终选 Mobile renderer" 前置条件 |
+| B9 | AC-13 升 BLOCKING + GUT injection | ✅ Done | injection mock + grep + manual 三路径 |
+| B10 | F-7 Output Range [0.5, 1.8] | ✅ Done | 下限 0.1 → 0.5（防 sub-pixel snap） |
+| B11 | Core Rule + Tween.set_parallel(true) | ✅ Done | 新增 Core Rule 8 |
+| B12 | OQ-1 spike 时机提前 | ✅ Done | Production Sprint 1 → Wave 3 启动前 1-2 天 |
+| R11 | Player Fantasy 内在张力 + Required Minimum 对称清单 | ✅ Done | "内在张力（Pillar Tension）" 小节 + Section C 七配方 Required Minimum 子项 + AC-14 |
+| R12 | Onboarding 前 3 次 shelf_add enhanced JC-R7 | ✅ Done | Interactions 表 + Edge Case + Dependencies 表 + `first_run_shelf_add_count` 持久化合同 |
+
+### AC 数量变化
+
+- 第一次评审时：13 条（8 BLOCKING / 5 ADVISORY）
+- 修订后：**15 条**（11 BLOCKING / 4 ADVISORY）
+- 新增：AC-01a/01b（拆分自 AC-01）、AC-14（Required Minimum 存在性）
+- 升级：AC-13 ADVISORY → BLOCKING（B9）
+
+### 未触及（Pass A 范围外）
+
+- Pass 1 R1–R10（除 R11/R12）：用户优先级未覆盖
+- Pass 1 4 Defer / 3 Rejected：按评审原意处理（不动）
+- **Pass 2 新增 B13–B17 + R13/R14**：Pass A 完成时 Pass 2 评审已并行写入 review-log，但 Pass A 编辑窗口已锁定 Pass 1 scope。**移交用户决策是否启动 Revision Pass B**。
+
+### Revision Pass A 后状态
+
+GDD 顶部 status: "Revised (2026-05-22 — 12 BLOCKING + R11 + R12 全部修订完成)"
+**Pass 2 verdict 仍未解除**（B13-B17 + R13/R14 未处理）；Wave 3 解锁条件取决于 Pass 2 是否走 Revision Pass B。
+
+---
+
 ## Review — 2026-05-22 (Pass 2, cross-review extension) — Verdict: MAJOR REVISION NEEDED (confirmed + extended)
 
 **Scope signal**: XL（升级自 Pass 1 的 L —— 因 Pass 2 新增 Cookbook 拆分 Layer 1/2 提议 + WCAG Level A 合规阻塞）
