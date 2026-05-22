@@ -43,7 +43,28 @@ last_updated: ""
 # interface: how other systems access this state (read-only property, method call,
 #   signal, shared resource, etc.) — this is the contract other ADRs depend on.
 
-state_ownership: []
+state_ownership:
+  - state: preferences.sfx_volume
+    status: active
+    owner_system: audio-system
+    adr: docs/architecture/adr-0001-foundation-autoload-contract.md
+    interface: "PersistenceService.get_slice('preferences') → dict['sfx_volume'] (float [0.0, 1.0]); written via set_slice('preferences', ...) + save_when_idle()"
+    write_access: audio-system-only
+    referenced_by:
+      - docs/architecture/adr-0001-foundation-autoload-contract.md
+    added: 2026-05-22
+    revised: ""
+
+  - state: preferences.music_volume
+    status: active
+    owner_system: audio-system
+    adr: docs/architecture/adr-0001-foundation-autoload-contract.md
+    interface: "PersistenceService.get_slice('preferences') → dict['music_volume'] (float [0.0, 1.0]); written via set_slice('preferences', ...) + save_when_idle()"
+    write_access: audio-system-only
+    referenced_by:
+      - docs/architecture/adr-0001-foundation-autoload-contract.md
+    added: 2026-05-22
+    revised: ""
 
 # Example:
 #
@@ -71,7 +92,24 @@ state_ownership: []
 #
 # pattern options: signal | direct_call | event_bus | shared_resource | rpc | none
 
-interfaces: []
+interfaces:
+  - contract: foundation_autoload_readiness
+    status: active
+    pattern: direct_call
+    producer:
+      - PersistenceService
+      - InputService
+      - AudioSystem
+      - HapticService
+    consumers:
+      - LifecycleService
+    adr: docs/architecture/adr-0001-foundation-autoload-contract.md
+    signal_signature: "func is_ready() -> bool"
+    notes: "All Foundation Autoloads MUST implement is_ready() -> bool. Returns true when _ready() and internal deferred work are complete. Called once per cold start by LifecycleService App Ready check. String-keyed preference constants only — no StringName."
+    referenced_by:
+      - docs/architecture/adr-0001-foundation-autoload-contract.md
+    added: 2026-05-22
+    revised: ""
 
 # Example:
 #
@@ -131,7 +169,17 @@ performance_budgets: []
 # Register an API decision when the choice is non-obvious and other ADRs might
 # make a different choice for the same purpose without knowing this was decided.
 
-api_decisions: []
+api_decisions:
+  - purpose: preference_key_type
+    status: active
+    api: "String constants (e.g. const PREFS_SFX_VOLUME := \"sfx_volume\")"
+    not: "StringName literals (e.g. &\"sfx_volume\") — StringName keys return null when querying JSON-parsed Dictionaries"
+    adr: docs/architecture/adr-0001-foundation-autoload-contract.md
+    reason: "JSON.parse_string() returns Dictionaries with String keys. StringName != String as Dictionary key in GDScript — silent null lookup, no runtime error."
+    referenced_by:
+      - docs/architecture/adr-0001-foundation-autoload-contract.md
+    added: 2026-05-22
+    revised: ""
 
 # Example:
 #
@@ -157,7 +205,27 @@ api_decisions: []
 # Register a pattern when an ADR explicitly bans it AND other ADRs might
 # unknowingly use it (i.e., it's a tempting but wrong approach for this project).
 
-forbidden_patterns: []
+forbidden_patterns:
+  - pattern: lifecycle_signal_analytics_subscription
+    status: active
+    description: "Subscribing to LifecycleService.app_ready, app_paused, or app_resumed
+      with any of the following intents is forbidden: recording the timestamp when the
+      signal fires; computing or storing session duration; counting session frequency
+      ('how many times has the user opened the app'); building any log of when/how
+      often the player used the app; passing lifecycle timing data to PersistenceService.
+      Applies regardless of whether data is uploaded — on-device behavioral profiling
+      violates the Anti-Pillar even if it never leaves the device."
+    why: "Anti-Pillar: '不上传烦恼内容 / 隐私是默认设置' (game-concept.md). The spirit
+      of this promise extends to on-device behavioral profiling without player awareness
+      or consent. LifecycleService signals carry implicit session-timing metadata;
+      subscribing to record that data would silently build a behavioral usage profile."
+    permitted_use: "Subscriptions for gameplay, UI, visual, audio, or haptic state
+      changes only. New subscribers must be listed in ADR-0002 Permitted Subscriber table."
+    adr: docs/architecture/adr-0002-anti-pillar-structural-guards.md
+    referenced_by:
+      - docs/architecture/adr-0002-anti-pillar-structural-guards.md
+      - design/gdd/mobile-app-lifecycle.md
+    added: 2026-05-22
 
 # Example:
 #

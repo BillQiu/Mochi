@@ -41,7 +41,10 @@ What players feel: nothing, directly. What they *don't* feel — and shouldn't h
      "collection":     { ... },
      "worry_history":  { ... },
      "flags":          { ... },
-     "preferences":    { ... }   // reserved for v1.0+
+     "preferences":    {           // MVP: AudioSystem-owned volume preferences (ADR-0001 Decision 3)
+      "sfx_volume": 1.0,          // float [0.0, 1.0], default 1.0 — owned by AudioSystem
+      "music_volume": 1.0         // float [0.0, 1.0], default 1.0 — owned by AudioSystem
+    }
    }
    ```
    *Format rationale*: JSON chosen over `Resource`/`.tres` for inspectability (debug, post-mortem), cross-version safety (no GDScript-class binding in the file), and migration ergonomics (pure data transforms). `ConfigFile` rejected: poor fit for nested arrays. Switching format is an ADR-level decision, not a knob.
@@ -100,6 +103,13 @@ What players feel: nothing, directly. What they *don't* feel — and shouldn't h
    ## has not yet shown the one-time corruption notice. Consumed by Scene
    ## Composition on first launch after corruption; cleared on consume.
    func consume_corruption_notice() -> bool
+
+   ## Foundation Autoload contract (ADR-0001 Decision 1).
+   ## Returns true when _ready() is complete and state is any READY_*.
+   ## Returns false only during UNINITIALIZED (before _ready() finishes).
+   ## Called once by LifecycleService during App Ready check — do not poll per-frame.
+   func is_ready() -> bool:
+       return _state in [State.READY_FRESH, State.READY_LOADED, State.READY_CORRUPTED]
    ```
 10. **Autoload registration order** *(silent-data-loss safeguard)*: `PersistenceService` MUST be the FIRST entry in `[autoload]` in `project.godot`. Downstream Autoloads MUST NOT call `Persistence.get_slice()` or `set_slice()` synchronously inside their own `_ready()` — defer to the next idle frame via `call_deferred` or connect to `tree_entered` signals. *Rationale*: Godot 4.6 runs Autoload `_ready()` in declaration order. If a downstream Autoload calls `get_slice()` while Persistence is still `UNINITIALIZED`, it receives the empty default and may subsequently overwrite real saved data with empty data. This is unrecoverable silent corruption.
 11. **Domain-agnostic**: Persistence source code MUST NOT contain business strings like `"products"`, `"worries"`, `"flags"`, `"collection"`. Slice names are passed in by callers. Enforced by a grep-based test (AC 11).

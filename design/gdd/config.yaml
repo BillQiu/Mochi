@@ -1,0 +1,35 @@
+mixed-port: 7890
+allow-lan: false
+mode: rule
+log-level: info
+
+dns:
+  enable: true
+  ipv6: false
+  enhanced-mode: fake-ip
+  nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+
+proxies:
+  - name: "233boy-trojan-64.186.226.113"
+    type: trojan
+    server: 64.186.226.113
+    port: 22222
+    password: 8dffe021-7f12-4aec-ac2f-ffcba99711ad
+    network: tcp
+    udp: true
+    sni: 64.186.226.113
+    skip-cert-verify: true
+    client-fingerprint: chrome
+
+proxy-groups:
+  - name: "PROXY"
+    type: select
+    proxies:
+      - "233boy-trojan-64.186.226.113"
+      - DIRECT
+
+rules:
+  - GEOIP,CN,DIRECT
+  - MATCH,PROXY

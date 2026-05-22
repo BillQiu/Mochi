@@ -2,7 +2,7 @@
 
 > **Status**: Draft
 > **Created**: 2026-05-21
-> **Last Updated**: 2026-05-21
+> **Last Updated**: 2026-05-22
 > **Source Concept**: design/gdd/game-concept.md
 > **Source Prototype**: prototypes/mochi-concept/ (concluded PROCEED 2026-05-21)
 
@@ -26,11 +26,11 @@ The game's pillars constrain everything:
 
 | # | System Name | Category | Priority | Status | Design Doc | Depends On |
 |---|-------------|----------|----------|--------|------------|------------|
-| 1 | Persistence System | Persistence | MVP | **Designed** (pending review) | design/gdd/persistence-system.md | — |
-| 2 | Input System (inferred) | Core | MVP | **Designed** (pending review) | design/gdd/input-system.md | — |
-| 3 | Audio System | Audio | MVP | **Designed** (pending review) | design/gdd/audio-system.md | — |
-| 4 | Haptic System | Core | MVP | **Designed** (pending review) | design/gdd/haptic-system.md | — |
-| 5 | Mobile App Lifecycle (inferred) | Core | MVP | **Designed** (pending review) | design/gdd/mobile-app-lifecycle.md | — |
+| 1 | Persistence System | Persistence | MVP | **NEEDS REVISION** (`/design-review` 2026-05-21, re-review #2 — 13 BLOCKING) | design/gdd/persistence-system.md | — |
+| 2 | Input System (inferred) | Core | MVP | 🔁 **Revised — pending re-review** (revision 2026-05-22 addresses 8 BLOCKING; review log: design/gdd/reviews/input-system-review-log.md) | design/gdd/input-system.md | — |
+| 3 | Audio System | Audio | MVP | **Revised — pending re-review** (revision 2026-05-22 addresses 11 BLOCKING from 2026-05-21 review; review log: `design/gdd/reviews/audio-system-review-log.md`) | design/gdd/audio-system.md | — |
+| 4 | Haptic System | Core | MVP | **Revised — pending re-review** (revision 2026-05-22 addresses 13 BLOCKING from 2026-05-21 review; paired-edit with audio-system.md) | design/gdd/haptic-system.md | — |
+| 5 | Mobile App Lifecycle (inferred) | Core | MVP | 🔁 Revised — pending re-review (revision 2026-05-22 addresses 12 BLOCKING; review log: design/gdd/reviews/lifecycle-system-review-log.md) | design/gdd/mobile-app-lifecycle.md | — |
 | 6 | Mochi Character System | Gameplay | MVP | Not Started | design/gdd/mochi-character.md | Audio, Mobile Lifecycle |
 | 7 | Text Input System | Gameplay | MVP | Not Started | design/gdd/text-input.md | Input, Persistence, Mobile Lifecycle |
 | 8 | Lever Interaction System | Gameplay | MVP | Not Started | design/gdd/lever-interaction.md | Input, Audio, Haptic, Juice Cookbook |
@@ -168,10 +168,26 @@ Wave 1-6 design GDDs sequentially within each wave but **systems within a wave c
 |--------|-------|
 | Total systems identified | 17 |
 | Design docs started | 5 |
-| Design docs reviewed | 0 |
+| Design docs reviewed | 5/5 (Persistence #1+#2, Input, Audio, Haptic, Lifecycle) |
 | Design docs approved | 0 |
+| Design docs MAJOR REVISION | 1 (Input) |
+| Design docs MAJOR REVISION — Revised, pending re-review | 2 (Audio, Lifecycle) |
+| Design docs NEEDS REVISION — Revised, pending re-review | 1 (Haptic) |
+| Design docs NEEDS REVISION | 1 (Persistence) |
 | MVP systems designed | 5/15 |
 | v1.0 systems designed | 0/2 |
+
+### Wave 1 修订路径决策（2026-05-21）
+
+跨文档结构性问题需先用 ADR 收敛，再批量修订单 GDD（避免反复返工）：
+
+1. **`docs/architecture/adr-XXX-foundation-autoload-contract.md`** — 定义 4 个 Foundation Autoload 共享接口范式：每个 Autoload 必须暴露 `is_ready() -> bool` + `state_changed(state)` 信号 + `get_state() -> State` 查询。解决 Audio 缺 `is_ready()`、Persistence 缺 `get_state()`、Lifecycle Formula 1 调用未实现 API 三个跨文档契约断裂。
+2. **`docs/architecture/adr-XXX-anti-pillar-structural-guards.md`** — Anti-Pillar 执行细节归集：(a) Lifecycle 信号 payload 禁止携带计数性时间戳；(b) Crash Reporter / `push_warning/error` 禁含 user content；(c) iOS NSURLIsExcludedFromBackupKey + NSFileProtectionComplete + Android `allowBackup=false` 列为发货前置；(d) 生产构建 `UIFileSharingEnabled = false`。承接 security-engineer 在 Persistence 上提的 4 条 BLOCKING。
+3. **三份 GDD 同步修订引用新 ADR**：Audio / Lifecycle / Persistence 分别补齐 API surface、修复单文档 BLOCKING（音频资产 brief、`lever_drag` 预紧音、Splash 归属、防抖窗口 playtest 依据、`Variant` 返回类型重构、AC 18 弃用 API 替换、腐败通知玩家代理感）。
+
+500KB 长期用户阈值：按 creative-director 裁定，**降级为 v1.0 Roadmap 必做**（多切片迁移路径），不阻塞 MVP。需要在 Persistence GDD 把 Open Questions 中对应条目移到 Roadmap 节。
+
+**仍开放**：preferences slice 是否提升为 MVP（Audio 音量持久化的实现路径），待 ADR 起草时决策。
 
 ---
 
