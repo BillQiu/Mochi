@@ -117,5 +117,71 @@ if [ "$stage" = "Production" ] || [ "$stage" = "Polish" ] || [ "$stage" = "Relea
   fi
 fi
 
+# --- Rate limits (5h + 7d) ---
+# Parsed from the same stdin JSON. Mirrors ~/.claude/statusline-command.sh formatting.
+make_bar() {
+  local pct="$1"
+  local filled
+  filled=$(echo "$pct * 5 / 100" | bc 2>/dev/null)
+  [ -z "$filled" ] && filled=0
+  local bar=""
+  local i
+  for i in 1 2 3 4 5; do
+    if [ "$i" -le "$filled" ]; then
+      bar="${bar}█"
+    else
+      bar="${bar}░"
+    fi
+  done
+  echo "$bar"
+}
+
+fmt_reset() {
+  local resets_at="$1"
+  local now
+  now=$(date +%s)
+  local diff=$((resets_at - now))
+  if [ "$diff" -le 0 ]; then
+    echo "now"
+    return
+  fi
+  local days=$((diff / 86400))
+  local hours=$(( (diff % 86400) / 3600 ))
+  local mins=$(( (diff % 3600) / 60 ))
+  if [ "$days" -gt 0 ]; then
+    printf "~%dd%dh" "$days" "$hours"
+  else
+    printf "~%dh%dm" "$hours" "$mins"
+  fi
+}
+
+line2=""
+if command -v jq &>/dev/null; then
+  five_pct=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty')
+  five_resets=$(echo "$input" | jq -r '.rate_limits.five_hour.resets_at // empty')
+  seven_pct=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
+  seven_resets=$(echo "$input" | jq -r '.rate_limits.seven_day.resets_at // empty')
+
+  if [ -n "$five_pct" ] && [ -n "$five_resets" ]; then
+    five_bar=$(make_bar "$(printf '%.0f' "$five_pct")")
+    five_time=$(fmt_reset "$five_resets")
+    line2="5h [${five_bar}] $(printf '%.0f' "$five_pct")% ${five_time}"
+  fi
+
+  if [ -n "$seven_pct" ] && [ -n "$seven_resets" ]; then
+    seven_bar=$(make_bar "$(printf '%.0f' "$seven_pct")")
+    seven_time=$(fmt_reset "$seven_resets")
+    seven_str="7d [${seven_bar}] $(printf '%.0f' "$seven_pct")% ${seven_time}"
+    if [ -n "$line2" ]; then
+      line2="${line2} | ${seven_str}"
+    else
+      line2="${seven_str}"
+    fi
+  fi
+fi
+
 # --- Assemble ---
-printf "%s" "${ctx_label} | ${model} | ${stage}${breadcrumb}"
+printf "%s\n" "${ctx_label} | ${model} | ${stage}${breadcrumb}"
+if [ -n "$line2" ]; then
+  printf "%s" "$line2"
+fi
