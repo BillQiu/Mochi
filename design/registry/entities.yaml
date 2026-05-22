@@ -37,7 +37,7 @@
 #   Each entry: name, status, source, referenced_by[], attributes{}, added, revised
 
 version: 2
-last_updated: "2026-05-21"
+last_updated: "2026-05-22"
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
 # Named game-world objects: enemies, NPCs, characters, factions, bosses.
@@ -297,26 +297,26 @@ constants:
     source: design/gdd/mobile-app-lifecycle.md
     referenced_by:
       - design/gdd/mobile-app-lifecycle.md
-      - design/gdd/haptic-system.md       # Haptic 订阅切到 BACKGROUNDED 状态
+      # Haptic 不订阅此信号——直接订阅 OS application_paused 通知（Foundation 同侪模式，ADR-0002）
       # Mochi Character, Scene Composition, Text Input 将追加自己
     value: "app_paused"
     unit: signal_name
     notes: "PAUSED 通知经过 RESUME_DEBOUNCE_MS 防抖确认后发出。瞬时切换不会触发。"
     added: "2026-05-21"
-    revised: ""
+    revised: "2026-05-22"
 
   - name: lifecycle_signal_app_resumed
     status: active
     source: design/gdd/mobile-app-lifecycle.md
     referenced_by:
       - design/gdd/mobile-app-lifecycle.md
-      - design/gdd/haptic-system.md       # Haptic 订阅恢复 READY 状态
+      # Haptic 不订阅此信号——直接订阅 OS application_resumed 通知（Foundation 同侪模式，ADR-0002）
       # Mochi Character, Scene Composition, Text Input 将追加自己
     value: "app_resumed"
     unit: signal_name
     notes: "仅在之前 app_paused 已发出（PAUSED_CONFIRMED 状态）时才会触发。Lifecycle 调用 InputService.release_text_mode() 后发出。"
     added: "2026-05-21"
-    revised: ""
+    revised: "2026-05-22"
 
   # ── Lifecycle 调节常量 ────────────────────────────────────────────────────
   - name: lifecycle_resume_debounce_ms
@@ -449,9 +449,9 @@ constants:
       - design/gdd/shelf-collection.md
     value: "shelf_add"
     unit: string_key
-    notes: "MVP 预设 = selection。"
+    notes: "MVP 预设 = light。区分 reveal_pop 的 selection 清脆感。# was: selection before 2026-05-22 re-review"
     added: "2026-05-21"
-    revised: ""
+    revised: "2026-05-22"
 
   - name: haptic_mochi_blink
     status: active
@@ -493,9 +493,9 @@ constants:
       - design/gdd/juice-cookbook.md
     value: 0.4
     unit: seconds
-    notes: "shred_pulse 触觉间隔。F-2 公式输入。安全范围 [0.3, 0.6]。Juice Cookbook 完成后须回评是否与 Audio shred_loop BPM 对齐。"
+    notes: "shred_pulse 触觉间隔。F-2 公式输入。安全范围 [0.3, 0.5]（上界由 0.6 收紧，> 0.5 失去机器存在感）。Juice Cookbook 完成后须回评是否与 Audio shred_loop BPM 对齐。# was: [0.3, 0.6] before 2026-05-22 Haptic GDD revision"
     added: "2026-05-21"
-    revised: ""
+    revised: "2026-05-22"
 
 # Example:
 #
