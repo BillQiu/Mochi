@@ -26,10 +26,10 @@ The game's pillars constrain everything:
 
 | # | System Name | Category | Priority | Status | Design Doc | Depends On |
 |---|-------------|----------|----------|--------|------------|------------|
-| 1 | Persistence System | Persistence | MVP | ✅ **Patched — pending /consistency-check** (2026-05-22 first re-review: CONCERNS → 2 BLOCKING resolved per commit 44bf308: settings slice 缺失 + Dependencies save_now 矛盾) | design/gdd/persistence-system.md | — |
+| 1 | Persistence System | Persistence | MVP | Patched — pending /consistency-check (2026-05-22 v3 cross-review: C1 Rule 10 Carve-out 加入 + C3 AudioSystem 在 Interactions/Dependencies/Cross-References 三处补全；见 gdd-cross-review-2026-05-22-v3.md) | design/gdd/persistence-system.md | — |
 | 2 | Input System (inferred) | Core | MVP | ✅ **Patched — pending /consistency-check** (2026-05-22 re-review: 8/8 BLOCKING ✅ + 1 新 BLOCKING resolved per commit 44bf308: LONG_PRESSING+PAUSED 缺口) | design/gdd/input-system.md | — |
-| 3 | Audio System | Audio | MVP | ✅ **Patched — pending /consistency-check** (2026-05-22 re-review: 11/11 BLOCKING ✅ + 1 新 BLOCKING resolved per commit 44bf308: lever_drag 三方矛盾——方案 B 升 play_loop) | design/gdd/audio-system.md | — |
-| 4 | Haptic System | Core | MVP | ✅ **Patched — pending /consistency-check** (2026-05-22 re-review: 13/13 BLOCKING ✅ + 2 新 BLOCKING resolved per commit 44bf308: settings slice 跨契约 + StringName/String 违规) | design/gdd/haptic-system.md | — |
+| 3 | Audio System | Audio | MVP | Patched — pending /consistency-check (2026-05-22 v3 cross-review: C2 NOTIFICATION_APPLICATION_FOCUS_IN→RESUMED 三处修正 + C7 FADE_DURATION 标 v1.0；见 gdd-cross-review-2026-05-22-v3.md) | design/gdd/audio-system.md | — |
+| 4 | Haptic System | Core | MVP | Patched — pending /consistency-check (2026-05-22 v3 cross-review: C1 引用 Persistence Carve-out + C4 set_user_enabled RMW + C6 行号引用改 section 引用 + _notification 模式与同侪对齐；见 gdd-cross-review-2026-05-22-v3.md) | design/gdd/haptic-system.md | — |
 | 5 | Mobile App Lifecycle (inferred) | Core | MVP | ✅ **PASS（附条件）— pending /consistency-check** (2026-05-22 full re-review: 12/12 BLOCKING ✅ + 补验 ADR/跨 GDD/设计稳健性 0 本体 BLOCKING；1 CONCERN 留 Scene Composition GDD 解决：boot_timeout 订阅方) | design/gdd/mobile-app-lifecycle.md | — |
 | 6 | Mochi Character System | Gameplay | MVP | Not Started | design/gdd/mochi-character.md | Audio, Mobile Lifecycle |
 | 7 | Text Input System | Gameplay | MVP | Not Started | design/gdd/text-input.md | Input, Persistence, Mobile Lifecycle |

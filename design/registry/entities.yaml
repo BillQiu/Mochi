@@ -37,7 +37,7 @@
 #   Each entry: name, status, source, referenced_by[], attributes{}, added, revised
 
 version: 2
-last_updated: "2026-05-22"
+last_updated: "2026-05-22"  # v3 cross-review: added audio_lead_ms + audio_pipeline_latency_ms + haptic_pipeline_latency_ms (C5 fix)
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
 # Named game-world objects: enemies, NPCs, characters, factions, bosses.
@@ -481,6 +481,52 @@ constants:
     unit: ms
     notes: "人类对触听同步察觉阈值。Audio 先 emit，Haptic 在此窗口内 emit。安全 Tuning 范围 [10, 50]。F-1 公式使用。依据 Spence 2007 + Apple HIG。"
     added: "2026-05-21"
+    revised: ""
+
+  - name: audio_lead_ms
+    status: active
+    source: design/gdd/haptic-system.md   # F-1 派生方
+    referenced_by:
+      - design/gdd/haptic-system.md
+      - design/gdd/audio-system.md         # Core Rule 9 标准调用模式
+      - design/gdd/lever-interaction.md
+      - design/gdd/shred-process.md
+      - design/gdd/silhouette-reveal.md
+      - design/gdd/shelf-collection.md
+      - design/gdd/juice-cookbook.md
+    value: 35
+    unit: ms
+    notes: "Haptic.play() 相对 AudioSystem.play() 的延迟发射量（= audio_pipeline_latency_ms − haptic_pipeline_latency_ms）。
+      调用方在同帧 Audio.play() 后 await timer(AUDIO_LEAD_MS / 1000.0) 再 Haptic.play()。
+      默认 35 ms 为中位数估计——Production Sprint 1 必须真机校准（见 Haptic Q-1）。
+      安全 Tuning 范围 [0, 80]。"
+    added: "2026-05-22"
+    revised: ""
+
+  - name: audio_pipeline_latency_ms
+    status: active
+    source: design/gdd/haptic-system.md   # F-1 派生方
+    referenced_by:
+      - design/gdd/haptic-system.md
+    value: 40
+    unit: ms
+    notes: "iOS AVAudioPlayer 从 play() 调用到耳机/扬声器响声的延迟。
+      实测范围 25–65 ms，依赖音频路由（扬声器 vs AirPods 蓝牙）。
+      MVP 默认值假定扬声器/有线路径。Production Sprint 1 真机校准。"
+    added: "2026-05-22"
+    revised: ""
+
+  - name: haptic_pipeline_latency_ms
+    status: active
+    source: design/gdd/haptic-system.md   # F-1 派生方
+    referenced_by:
+      - design/gdd/haptic-system.md
+    value: 5
+    unit: ms
+    notes: "Taptic Engine 从 plugin call 到触感发生的延迟。
+      实测范围 3–10 ms（Apple 未明示，社区测量）。
+      Production Sprint 1 真机校准。"
+    added: "2026-05-22"
     revised: ""
 
   - name: shred_pulse_interval_s

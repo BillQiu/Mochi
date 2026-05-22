@@ -115,6 +115,11 @@ What players feel: nothing, directly. What they *don't* feel — and shouldn't h
        return _state in [State.READY_FRESH, State.READY_LOADED, State.READY_CORRUPTED]
    ```
 10. **Autoload registration order** *(silent-data-loss safeguard)*: `PersistenceService` MUST be the FIRST entry in `[autoload]` in `project.godot`. Downstream Autoloads MUST NOT call `Persistence.get_slice()` or `set_slice()` synchronously inside their own `_ready()` — defer to the next idle frame via `call_deferred` or connect to `tree_entered` signals. *Rationale*: Godot 4.6 runs Autoload `_ready()` in declaration order. If a downstream Autoload calls `get_slice()` while Persistence is still `UNINITIALIZED`, it receives the empty default and may subsequently overwrite real saved data with empty data. This is unrecoverable silent corruption.
+
+   **Carve-out — Foundation Autoload 同侪同步读取例外（ADR-0001 Decision 4 注册顺序契约下）**：注册顺序在 `PersistenceService` 之后的 Foundation 同侪（per ADR-0001 Decision 4：`Persistence → Input → Audio → Haptic → Lifecycle`），其 `_ready()` 执行时 Persistence 已完成 `_ready()` 并进入 `READY_*` 状态——此前提下，同侪可在自身 `_ready()` 中同步调用 `get_slice()` **读取**。具名例外清单（任何新增同侪必须在此列出）：
+   - **HapticService #4**：同步读 `get_slice("settings", {}).get("haptic_enabled", true)` 设置初始 `_user_enabled`。Audio #3 与 Input #2 不在例外清单——Audio 走 `call_deferred` 读 `preferences` slice（详 Audio Core Rule 7）；Input 无 Persistence 依赖。
+   
+   **`set_slice()` 写入仍受 MUST NOT 约束**——所有 Autoload 写入必须 `call_deferred` 或事件触发，避免在 `_ready()` 链中触发 SAVING 状态。本例外**仅**针对只读 `get_slice()`。
 11. **Domain-agnostic**: Persistence source code MUST NOT contain business strings like `"products"`, `"worries"`, `"flags"`, `"collection"`. Slice names are passed in by callers. Enforced by a grep-based test (AC 11).
 12. **Plaintext-text guard test** *(complements Rule 4)*: a CI test scans `user://save.json` produced by an end-to-end playtest for the literal worry strings used during the test. Zero matches required. This is the architectural enforcement of the no-plaintext-worries rule.
 13. **Thin wrapper convention**: every domain system (e.g., `WorryHistory`, `ProductInventory`, `FirstRunFlag`) owns its own thin wrapper that calls `Persistence.get_slice(...)` / `set_slice(...)` / `save_when_idle()`. Wrappers live in the domain system's directory, NOT in Persistence's. Persistence does not import them.
@@ -146,7 +151,8 @@ Persistence is the **sole owner** of `user://save.json`. Every other system inte
 | **Shelf Collection** | Reads `get_slice("collection", [])` once on scene enter and **caches the result locally** — must not call per-frame (Core Rule 9 deep-copy semantics). | `collection` (reads) |
 | **Onboarding** | `get_slice("flags", {}).get("first_run_complete", false)` gate; `set_slice("flags", {...})` + `save_when_idle()` on completion | `flags` (owns `first_run_complete`) |
 | **Scene Composition** | OPTIONAL: `get_slice("flags", {}).get("last_scene", "main")`; `set_slice` + `save_when_idle()` on scene transition. **Also**: calls `Persistence.consume_corruption_notice()` on first launch; if `true`, renders the one-time corruption bottom-sheet (see UI Requirements). | `flags` (owns `last_scene`, consumer of `_corrupted_pending_notice`) |
-| **Haptic System** | `get_slice("settings", {}).get("haptic_enabled", true)` synchronously in `_ready()` (Persistence is Autoload #1, settled by the time Haptic #4 runs); on user toggle: `set_slice("settings", {...})` + `save_when_idle()`. Per ADR-0001 Decision 5. Keys are `String` constants, not `StringName`. | `settings` (owns `haptic_enabled`) |
+| **Audio System** | `get_slice("preferences", {}).get("sfx_volume", 1.0)` / `.get("music_volume", 1.0)` via `call_deferred` in `_ready()` (per Audio Core Rule 7); on volume change: `set_slice("preferences", merged)` + `save_when_idle()`. Per ADR-0001 Decision 3. Keys are `String` constants. | `preferences` (owns `sfx_volume`, `music_volume`) |
+| **Haptic System** | `get_slice("settings", {}).get("haptic_enabled", true)` synchronously in `_ready()` — **per Core Rule 10 Carve-out 例外清单 #1**: Persistence #1 已在 Haptic #4 `_ready()` 执行时进入 `READY_*` 状态。On user toggle: `set_slice("settings", merged)` + `save_when_idle()` (read-modify-write). Per ADR-0001 Decision 5. Keys are `String` constants, not `StringName`. | `settings` (owns `haptic_enabled`) |
 | **Mobile App Lifecycle** | Persistence internally subscribes to `NOTIFICATION_APPLICATION_PAUSED` / `NOTIFICATION_WM_GO_BACK_REQUEST` directly and calls `save_now()` (sync, lifecycle-only). | (Persistence is the consumer) |
 
 > ⚠️ **Provisional Contract**: the 5 downstream GDDs (Text Input, Product, Shelf, Onboarding, Scene Composition) are not yet written. When designed, they MUST conform to the slice names and contract shapes above. Any deviation requires updating this GDD via `/consistency-check`.
@@ -319,6 +325,8 @@ Grouped by risk class. Format: `If [condition]: [outcome]. [rationale]`.
 
 | System | Direction | Nature | Hard / Soft | Interface |
 |--------|-----------|--------|-------------|-----------|
+| **Audio System** | Audio → Persistence | Data (read+write) | **Hard** — volume preferences must survive sessions; SFX/Music sliders are MVP feature (ADR-0001 Decision 3) | `get_slice("preferences", {})` via `call_deferred` / `set_slice("preferences", merged)` + `save_when_idle()` |
+| **Haptic System** | Haptic → Persistence | Data (read+write) | **Hard** — `haptic_enabled` toggle persistence (ADR-0001 Decision 5) | `get_slice("settings", {})` synchronously in `_ready()` (Rule 10 Carve-out) / `set_slice("settings", merged)` + `save_when_idle()` |
 | **Text Input** | Text Input → Persistence | Data (read+write) | **Hard** — 24h dedup state must survive sessions | `get_slice("worry_history", [])` / `set_slice("worry_history", updated)` + `save_when_idle()` |
 | **Product System** | Product → Persistence | Data (read+write) | **Hard** — collection IS persistent state | `get_slice("collection", [])` / `set_slice("collection", updated)` + `save_when_idle()` |
 | **Shelf Collection** | Shelf → Persistence | Data (read-only) | **Hard** — Shelf has no other source of collection data | `get_slice("collection", [])` |
@@ -409,6 +417,8 @@ Player-visible state for collection, worries, and onboarding lives in their resp
 | Layer + priority assignment | `design/gdd/systems-index.md` | Persistence row in Systems Enumeration | Index reference |
 | Privacy audit obligation | *(future)* `design/gdd/privacy-boundary.md` | Audits Persistence's Core Rules 4 + 5 + Formula 4 | Architectural audit |
 | Future ADR for iCloud Backup exclusion implementation | *(future)* `docs/architecture/adr-XXXX-icloud-backup-exclusion.md` | GDExtension wrap for `NSURLIsExcludedFromBackupKey` | Implementation reference |
+| `preferences` slice contract (sfx_volume / music_volume, per ADR-0001 Decision 3) | `design/gdd/audio-system.md` | Core Rule 7 + Dependencies | Data dependency |
+| `settings` slice contract (haptic_enabled, per ADR-0001 Decision 5) + Rule 10 Carve-out exemption | `design/gdd/haptic-system.md` | Core Rule 5 + API `_ready()` | Data dependency |
 | Provisional contract for `worry_history` slice (hash+timestamp ONLY — Core Rule 4) | *(future)* `design/gdd/text-input.md` | `worry_history` slice ownership | Data dependency |
 | Provisional contract for `collection` slice | *(future)* `design/gdd/product-system.md` | `collection` slice ownership | Data dependency |
 | Provisional contract for `collection` slice (read-only, cache locally — Core Rule 9) | *(future)* `design/gdd/shelf-collection.md` | `collection` slice consumption | Data dependency |
