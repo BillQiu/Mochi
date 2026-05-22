@@ -26,11 +26,11 @@ The game's pillars constrain everything:
 
 | # | System Name | Category | Priority | Status | Design Doc | Depends On |
 |---|-------------|----------|----------|--------|------------|------------|
-| 1 | Persistence System | Persistence | MVP | **NEEDS REVISION** (`/design-review` 2026-05-21, re-review #2 — 13 BLOCKING) | design/gdd/persistence-system.md | — |
-| 2 | Input System (inferred) | Core | MVP | 🔁 **Revised — pending re-review** (revision 2026-05-22 addresses 8 BLOCKING; review log: design/gdd/reviews/input-system-review-log.md) | design/gdd/input-system.md | — |
-| 3 | Audio System | Audio | MVP | **Revised — pending re-review** (revision 2026-05-22 addresses 11 BLOCKING from 2026-05-21 review; review log: `design/gdd/reviews/audio-system-review-log.md`) | design/gdd/audio-system.md | — |
-| 4 | Haptic System | Core | MVP | **Revised — pending re-review** (revision 2026-05-22 addresses 13 BLOCKING from 2026-05-21 review; paired-edit with audio-system.md) | design/gdd/haptic-system.md | — |
-| 5 | Mobile App Lifecycle (inferred) | Core | MVP | 🔁 Revised — pending re-review (revision 2026-05-22 addresses 12 BLOCKING; review log: design/gdd/reviews/lifecycle-system-review-log.md) | design/gdd/mobile-app-lifecycle.md | — |
+| 1 | Persistence System | Persistence | MVP | ✅ **Patched — pending /consistency-check** (2026-05-22 first re-review: CONCERNS → 2 BLOCKING resolved per commit 44bf308: settings slice 缺失 + Dependencies save_now 矛盾) | design/gdd/persistence-system.md | — |
+| 2 | Input System (inferred) | Core | MVP | ✅ **Patched — pending /consistency-check** (2026-05-22 re-review: 8/8 BLOCKING ✅ + 1 新 BLOCKING resolved per commit 44bf308: LONG_PRESSING+PAUSED 缺口) | design/gdd/input-system.md | — |
+| 3 | Audio System | Audio | MVP | ✅ **Patched — pending /consistency-check** (2026-05-22 re-review: 11/11 BLOCKING ✅ + 1 新 BLOCKING resolved per commit 44bf308: lever_drag 三方矛盾——方案 B 升 play_loop) | design/gdd/audio-system.md | — |
+| 4 | Haptic System | Core | MVP | ✅ **Patched — pending /consistency-check** (2026-05-22 re-review: 13/13 BLOCKING ✅ + 2 新 BLOCKING resolved per commit 44bf308: settings slice 跨契约 + StringName/String 违规) | design/gdd/haptic-system.md | — |
+| 5 | Mobile App Lifecycle (inferred) | Core | MVP | ✅ **PASS（附条件）— pending /consistency-check** (2026-05-22 full re-review: 12/12 BLOCKING ✅ + 补验 ADR/跨 GDD/设计稳健性 0 本体 BLOCKING；1 CONCERN 留 Scene Composition GDD 解决：boot_timeout 订阅方) | design/gdd/mobile-app-lifecycle.md | — |
 | 6 | Mochi Character System | Gameplay | MVP | Not Started | design/gdd/mochi-character.md | Audio, Mobile Lifecycle |
 | 7 | Text Input System | Gameplay | MVP | Not Started | design/gdd/text-input.md | Input, Persistence, Mobile Lifecycle |
 | 8 | Lever Interaction System | Gameplay | MVP | Not Started | design/gdd/lever-interaction.md | Input, Audio, Haptic, Juice Cookbook |
@@ -168,26 +168,29 @@ Wave 1-6 design GDDs sequentially within each wave but **systems within a wave c
 |--------|-------|
 | Total systems identified | 17 |
 | Design docs started | 5 |
-| Design docs reviewed | 5/5 (Persistence #1+#2, Input, Audio, Haptic, Lifecycle) |
-| Design docs approved | 0 |
-| Design docs MAJOR REVISION | 1 (Input) |
-| Design docs MAJOR REVISION — Revised, pending re-review | 2 (Audio, Lifecycle) |
-| Design docs NEEDS REVISION — Revised, pending re-review | 1 (Haptic) |
-| Design docs NEEDS REVISION | 1 (Persistence) |
+| Design docs reviewed (initial + 2026-05-22 re-review) | 5/5 完成 |
+| Design docs PASS（附条件）| 1 (Lifecycle) |
+| Design docs Patched — pending /consistency-check | 4 (Persistence, Input, Audio, Haptic) |
+| BLOCKING resolved 2026-05-22 (commit 44bf308) | 4 独立问题 / 15 patch / 5 文件 |
 | MVP systems designed | 5/15 |
 | v1.0 systems designed | 0/2 |
 
-### Wave 1 修订路径决策（2026-05-21）
+### Wave 1 修订路径决策（2026-05-21 → 2026-05-22 收口）
 
-跨文档结构性问题需先用 ADR 收敛，再批量修订单 GDD（避免反复返工）：
+跨文档结构性问题先用 ADR 收敛，再批量修订单 GDD（避免反复返工）。**全部完成**：
 
-1. **`docs/architecture/adr-XXX-foundation-autoload-contract.md`** — 定义 4 个 Foundation Autoload 共享接口范式：每个 Autoload 必须暴露 `is_ready() -> bool` + `state_changed(state)` 信号 + `get_state() -> State` 查询。解决 Audio 缺 `is_ready()`、Persistence 缺 `get_state()`、Lifecycle Formula 1 调用未实现 API 三个跨文档契约断裂。
-2. **`docs/architecture/adr-XXX-anti-pillar-structural-guards.md`** — Anti-Pillar 执行细节归集：(a) Lifecycle 信号 payload 禁止携带计数性时间戳；(b) Crash Reporter / `push_warning/error` 禁含 user content；(c) iOS NSURLIsExcludedFromBackupKey + NSFileProtectionComplete + Android `allowBackup=false` 列为发货前置；(d) 生产构建 `UIFileSharingEnabled = false`。承接 security-engineer 在 Persistence 上提的 4 条 BLOCKING。
-3. **三份 GDD 同步修订引用新 ADR**：Audio / Lifecycle / Persistence 分别补齐 API surface、修复单文档 BLOCKING（音频资产 brief、`lever_drag` 预紧音、Splash 归属、防抖窗口 playtest 依据、`Variant` 返回类型重构、AC 18 弃用 API 替换、腐败通知玩家代理感）。
+1. ✅ **`docs/architecture/adr-0001-foundation-autoload-contract.md`** (Proposed) — 5 个 Decision：
+   - Decision 1: 统一 `is_ready() -> bool` 契约（4 个 Foundation peer 全部实现）
+   - Decision 2: Lifecycle App Ready 检查扩展为 4-peer `is_ready()` 查询
+   - Decision 3: `preferences` slice 提升为 MVP（`sfx_volume` + `music_volume`，AudioSystem 拥有）+ String 键约束（防 JSON-roundtrip 时 StringName 静默返回 null）
+   - Decision 4: 规范 Autoload 注册顺序 `Persistence → Input → Audio → Haptic → Lifecycle`
+   - Decision 5（**2026-05-22 新增**）: 新建 `settings` slice（HapticService 拥有 `haptic_enabled`）+ String 键约束泛化至所有 Persistence slice 名 + 键名
+2. ✅ **`docs/architecture/adr-0002-anti-pillar-structural-guards.md`** (Proposed) — Lifecycle 信号订阅 Permitted Subscriber 表 + Forbidden Pattern `lifecycle_signal_analytics_subscription` + Core Rule 11 写入 Lifecycle GDD + Forbidden Pattern 登记至 `docs/registry/architecture.yaml`
+3. ✅ **5 个 GDD 全量修订引用新 ADR**：Persistence / Input / Audio / Haptic / Lifecycle 各自 BLOCKING 收口（commit `c38748c` 主修订 + `44bf308` re-review BLOCKING 二修），5 份独立 re-review 全部通过
 
-500KB 长期用户阈值：按 creative-director 裁定，**降级为 v1.0 Roadmap 必做**（多切片迁移路径），不阻塞 MVP。需要在 Persistence GDD 把 Open Questions 中对应条目移到 Roadmap 节。
+500KB 长期用户阈值：按 creative-director 裁定，**降级为 v1.0 Roadmap 必做**（多切片迁移路径），不阻塞 MVP。已在 Persistence GDD 中以 v1.0+ 标注。
 
-**仍开放**：preferences slice 是否提升为 MVP（Audio 音量持久化的实现路径），待 ADR 起草时决策。
+✅ **preferences slice MVP 决策已落（ADR-0001 Decision 3）+ settings slice 新增（Decision 5）**。Persistence schema 已含两个顶层切片，HapticService `haptic_enabled` 用户开关持久化路径打通。
 
 ---
 
@@ -203,9 +206,10 @@ See `prototypes/mochi-concept/README.md` Findings for full context.
 
 ## Next Steps
 
-- [ ] Begin Wave 1: design Persistence, Input, Audio, Haptic, Mobile Lifecycle (parallel within wave)
-- [ ] Begin with `/design-system persistence-system` or `/map-systems next`
-- [ ] After each GDD: run `/design-review design/gdd/[system].md` in a fresh session
-- [ ] After all MVP GDDs are written: run `/review-all-gdds` for cross-system consistency
-- [ ] When all 15 MVP GDDs are reviewed: run `/gate-check pre-production`
+- [x] Wave 1 设计 + 评审 + 修订全量完成（2026-05-22，commit `c38748c` + `44bf308`）
+- [x] ADR-0001（5 Decisions, 含 settings slice）+ ADR-0002 Proposed
+- [ ] **下一步：`/consistency-check`** — 验证 ADR-0001 Decision 5 与 5 个 GDD 真正闭环（Persistence Interactions 表 ↔ Haptic SETTINGS_SLICE 调用方）
+- [ ] `/review-all-gdds` — Opus，Pillar / 设计理论整体审查（dominant strategy、cognitive overload、pillar drift）
+- [ ] `/gate-check pre-production` — PASS 才解锁 Wave 2
+- [ ] Wave 2: Juice Cookbook（必须先于 Wave 3-6 任何 Core gameplay 系统）
 - [ ] Then: `/create-architecture` → `/vertical-slice` → enter Production
