@@ -26,11 +26,11 @@ The game's pillars constrain everything:
 
 | # | System Name | Category | Priority | Status | Design Doc | Depends On |
 |---|-------------|----------|----------|--------|------------|------------|
-| 1 | Persistence System | Persistence | MVP | Patched — pending /consistency-check (2026-05-22 v3 cross-review: C1 Rule 10 Carve-out 加入 + C3 AudioSystem 在 Interactions/Dependencies/Cross-References 三处补全；见 gdd-cross-review-2026-05-22-v3.md) | design/gdd/persistence-system.md | — |
-| 2 | Input System (inferred) | Core | MVP | ✅ **Patched — pending /consistency-check** (2026-05-22 re-review: 8/8 BLOCKING ✅ + 1 新 BLOCKING resolved per commit 44bf308: LONG_PRESSING+PAUSED 缺口) | design/gdd/input-system.md | — |
-| 3 | Audio System | Audio | MVP | Patched — pending /consistency-check (2026-05-22 v3 cross-review: C2 NOTIFICATION_APPLICATION_FOCUS_IN→RESUMED 三处修正 + C7 FADE_DURATION 标 v1.0；见 gdd-cross-review-2026-05-22-v3.md) | design/gdd/audio-system.md | — |
-| 4 | Haptic System | Core | MVP | Patched — pending /consistency-check (2026-05-22 v3 cross-review: C1 引用 Persistence Carve-out + C4 set_user_enabled RMW + C6 行号引用改 section 引用 + _notification 模式与同侪对齐；见 gdd-cross-review-2026-05-22-v3.md) | design/gdd/haptic-system.md | — |
-| 5 | Mobile App Lifecycle (inferred) | Core | MVP | ✅ **PASS（附条件）— pending /consistency-check** (2026-05-22 full re-review: 12/12 BLOCKING ✅ + 补验 ADR/跨 GDD/设计稳健性 0 本体 BLOCKING；1 CONCERN 留 Scene Composition GDD 解决：boot_timeout 订阅方) | design/gdd/mobile-app-lifecycle.md | — |
+| 1 | Persistence System | Persistence | MVP | Reviewed (2026-05-22 v3 cross-review PASS：C1 Rule 10 Carve-out + C3 AudioSystem 依赖补全) | design/gdd/persistence-system.md | — |
+| 2 | Input System (inferred) | Core | MVP | Reviewed (2026-05-22 v3 cross-review PASS：本系统无新增 BLOCKING；8/8 历史 BLOCKING + LONG_PRESSING+PAUSED 缺口已 commit 44bf308 修复) | design/gdd/input-system.md | — |
+| 3 | Audio System | Audio | MVP | Reviewed (2026-05-22 v3 cross-review PASS：C2 NOTIFICATION_APPLICATION_FOCUS_IN→RESUMED 三处修正 + C7 FADE_DURATION 标 v1.0) | design/gdd/audio-system.md | — |
+| 4 | Haptic System | Core | MVP | Reviewed (2026-05-22 v3 cross-review PASS：C1 引用 Persistence Carve-out + C4 set_user_enabled RMW + C6 section 引用 + _notification 模式与同侪对齐) | design/gdd/haptic-system.md | — |
+| 5 | Mobile App Lifecycle (inferred) | Core | MVP | Reviewed (2026-05-22 v3 cross-review PASS：本系统无新增 BLOCKING；12/12 历史 BLOCKING 已修复；1 CONCERN 留 Scene Composition GDD 解决：boot_timeout 订阅方) | design/gdd/mobile-app-lifecycle.md | — |
 | 6 | Mochi Character System | Gameplay | MVP | Not Started | design/gdd/mochi-character.md | Audio, Mobile Lifecycle |
 | 7 | Text Input System | Gameplay | MVP | Not Started | design/gdd/text-input.md | Input, Persistence, Mobile Lifecycle |
 | 8 | Lever Interaction System | Gameplay | MVP | Not Started | design/gdd/lever-interaction.md | Input, Audio, Haptic, Juice Cookbook |
@@ -168,10 +168,9 @@ Wave 1-6 design GDDs sequentially within each wave but **systems within a wave c
 |--------|-------|
 | Total systems identified | 17 |
 | Design docs started | 5 |
-| Design docs reviewed (initial + 2026-05-22 re-review) | 5/5 完成 |
-| Design docs PASS（附条件）| 1 (Lifecycle) |
-| Design docs Patched — pending /consistency-check | 4 (Persistence, Input, Audio, Haptic) |
-| BLOCKING resolved 2026-05-22 (commit 44bf308) | 4 独立问题 / 15 patch / 5 文件 |
+| Design docs reviewed (initial + 2026-05-22 v3 cross-review) | 5/5 Reviewed |
+| Wave 1 → Wave 2 unlock gate | ✅ PASS（附条件——ADR 推 Accepted 在 /vertical-slice 前） |
+| BLOCKING resolved 2026-05-22 across 3 commits | 11 独立问题 (44bf308: 4 / 9568a3f: 3 + 4 Warnings) |
 | MVP systems designed | 5/15 |
 | v1.0 systems designed | 0/2 |
 
@@ -206,10 +205,12 @@ See `prototypes/mochi-concept/README.md` Findings for full context.
 
 ## Next Steps
 
-- [x] Wave 1 设计 + 评审 + 修订全量完成（2026-05-22，commit `c38748c` + `44bf308`）
+- [x] Wave 1 设计 + 评审 + 修订全量完成（2026-05-22，commits `c38748c` + `44bf308` + `9568a3f`）
 - [x] ADR-0001（5 Decisions, 含 settings slice）+ ADR-0002 Proposed
-- [ ] **下一步：`/consistency-check`** — 验证 ADR-0001 Decision 5 与 5 个 GDD 真正闭环（Persistence Interactions 表 ↔ Haptic SETTINGS_SLICE 调用方）
-- [ ] `/review-all-gdds` — Opus，Pillar / 设计理论整体审查（dominant strategy、cognitive overload、pillar drift）
-- [ ] `/gate-check pre-production` — PASS 才解锁 Wave 2
-- [ ] Wave 2: Juice Cookbook（必须先于 Wave 3-6 任何 Core gameplay 系统）
-- [ ] Then: `/create-architecture` → `/vertical-slice` → enter Production
+- [x] `/consistency-check`（commit `f9095dc`：4 conflicts resolved）
+- [x] `/review-all-gdds` v3（2026-05-22 三轮 cross-review；C1/C2/C3 BLOCKING + C4/C5/C6/C7 Warnings 全部 commit `9568a3f` 修复）
+- [x] `/gate-check pre-production` Wave 1→2 unlock checkpoint：**PASS（附条件）**
+- [ ] **下一步：Wave 2 `/design-system juice-cookbook`** — ~500 字 reference doc（cookbook 类型，非完整 GDD），是 Wave 3-6 所有 Core gameplay GDD 的前置
+- [ ] 并行可选：`/architecture-review adr-0001` + `adr-0002` 推 Accepted（不阻塞 Wave 2，但 /vertical-slice 前必须完成）
+- [ ] Then Wave 3-6: Mochi Character / Text Input / Lever / Shred / Product / Silhouette / Shelf / Onboarding / Scene Composition（5 Wave）
+- [ ] 全 MVP GDD 完成 → `/create-architecture` → 真 Pre-Production gate → `/vertical-slice` → enter Production
