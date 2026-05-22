@@ -38,7 +38,7 @@ The game's pillars constrain everything:
 | 10 | Product System | Economy | MVP | Not Started | design/gdd/product-system.md | Persistence |
 | 11 | Silhouette Reveal System | Gameplay | MVP | Not Started | design/gdd/silhouette-reveal.md | Product, Input, Audio, Haptic, Juice Cookbook |
 | 12 | Shelf Collection System | Gameplay | MVP | Not Started | design/gdd/shelf-collection.md | Persistence, Product |
-| 13 | Game Feel / Juice Cookbook ⭐ | Meta | MVP | Designed (2026-05-22, pending /design-review) | design/gdd/juice-cookbook.md | Audio, Haptic |
+| 13 | Game Feel / Juice Cookbook ⭐ | Meta | MVP | NEEDS REVISION (2026-05-22 Pass 1: 12 BLOCKING + 12 R；Pass 2 cross-review: +5 BLOCKING [B13 WCAG / B14 iOS reduce motion / B15 freeze 技术错误 / B16 5% 覆盖度 / B17 audio specs 跨文档裂缝] + 2 R + creative-director 提议拆 Layer 1/2；详见 design/gdd/reviews/juice-cookbook-review-log.md) | design/gdd/juice-cookbook.md | Audio, Haptic |
 | 14 | Onboarding / First-Run System (inferred) | Meta | MVP | Not Started | design/gdd/onboarding.md | Mochi, Text Input, Lever, Product, Silhouette, Shelf, Persistence |
 | 15 | Scene Composition / Navigation (inferred) | UI | MVP | Not Started | design/gdd/scene-composition.md | Persistence |
 | 16 | Accessibility System (inferred) | Meta | v1.0 | Not Started | design/gdd/accessibility-system.md | Input, Text Input, Mochi, Scene Composition, Juice Cookbook |
@@ -169,9 +169,9 @@ Wave 1-6 design GDDs sequentially within each wave but **systems within a wave c
 | Total systems identified | 17 |
 | Design docs started | 6 (Wave 1: 5 Foundation + Wave 2: Juice Cookbook) |
 | Design docs reviewed (initial + 2026-05-22 v3 cross-review) | 5/5 Wave 1 Reviewed |
-| Design docs designed pending review | 1 (juice-cookbook.md，2026-05-22) |
+| Design docs designed pending review | 0（juice-cookbook.md 已评审完成 → NEEDS REVISION） |
 | Wave 1 → Wave 2 unlock gate | ✅ PASS（附条件已解除 2026-05-22：ADR-0001/0002 均 Accepted，commit `7689b9c`） |
-| Wave 2 Juice Legislation 状态 | ✅ Cookbook 8 节 GDD 完成（升级路径，~850 行），pending /design-review |
+| Wave 2 Juice Legislation 状态 | ⚠️ Cookbook 8 节 GDD 完成但 /design-review MAJOR REVISION NEEDED（2026-05-22）：12 BLOCKING + 12 Recommended，Wave 3 启动前修复 B1/B2/B5/B6/B11/B12 |
 | BLOCKING resolved 2026-05-22 across 3 commits | 11 独立问题 (44bf308: 4 / 9568a3f: 3 + 4 Warnings) |
 | MVP systems designed | 6/15 |
 | v1.0 systems designed | 0/2 |
@@ -214,7 +214,10 @@ See `prototypes/mochi-concept/README.md` Findings for full context.
 - [x] `/gate-check pre-production` Wave 1→2 unlock checkpoint：**PASS（附条件 → 已解除：两 ADR 已 Accepted）**
 - [x] `/architecture-review adr-0001 adr-0002`（10/10 TR 覆盖、0 conflict、首次登记 tr-registry.yaml）
 - [x] **Wave 2 `/design-system juice-cookbook`** — ✅ 完成 8 节完整 GDD（升级路径），含 7 个 JC-R 配方 ID + F-1..F-7 公式 + VA-1..VA-7 视觉/音频边界 + 13 条 AC（2026-05-22）
-- [ ] **下一步推荐：独立 session 跑 `/design-review design/gdd/juice-cookbook.md`** — 跨 Wave 3-6 硬引用合同，质量门禁最严
-- [ ] 可并行：`/consistency-check`（验证 registry 8 新 juice_* constants + juice_impact_sync_t formula 引用关系闭环）
+- [x] **`/design-review design/gdd/juice-cookbook.md` Pass 1** — ⚠️ 完成 2026-05-22，Verdict: **MAJOR REVISION NEEDED**（12 BLOCKING + 12 Recommended）
+- [x] **`/design-review design/gdd/juice-cookbook.md` Pass 2 cross-review** — ⚠️ 完成 2026-05-22，Verdict 维持 **MAJOR REVISION NEEDED**；新增 5 BLOCKING（B13 WCAG / B14 iOS reduce motion / B15 freeze 技术错误 / B16 5% 覆盖度 / B17 audio specs 跨文档裂缝）+ 2 Recommended + creative-director 提议拆 Layer 1/Layer 2
+- [ ] **下一步推荐：另开独立 session 修订 Juice Cookbook** — Pass 2 修复顺序: B13/B14（WCAG + iOS reduce motion MVP BLOCKING）→ B15（freeze 措辞）→ B16/B17（结构变更，与 Layer 1/2 拆分同步）→ Pass 1 B1-B12 → R items。Wave 3 启动前置硬条件: B13/B14/B15/B16/B17 + Pass 1 B1/B2/B5/B6/B11/B12 全部必修
+- [ ] Wave 3 启动前置并行任务：（a）真机 spike 校准 audio_lead_ms（OQ-1，B12）；（b）真机 profile 48 颗粒子上限（B7）；（c）technical-director ADR-R 决定 Mobile vs Forward+ renderer（B8）
+- [ ] 修订完成后：第二次 `/design-review` 验证（或 since-last-review 模式）→ /consistency-check → 解锁 Wave 3
 - [ ] Then Wave 3-6: Mochi Character / Text Input / Lever / Shred / Product / Silhouette / Shelf / Onboarding / Scene Composition（5 Wave）。每个 Core gameplay GDD 的 Tuning Knobs 必须 cite `JC-R1..R7` 对应配方 ID（Cookbook 硬引用合同，code review BLOCKING）
 - [ ] 全 MVP GDD 完成 → `/create-architecture` → 真 Pre-Production gate → `/vertical-slice` → enter Production
