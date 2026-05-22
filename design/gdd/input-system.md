@@ -200,6 +200,8 @@ min_touch_target_px = LOGICAL_TOUCH_TARGET_PT × SCREEN_SCALE_FACTOR
 
 - **若应用进入后台时处于 TEXT_MODE**：Input System 不自动切换回 GESTURE_MODE。应用恢复前台后，若 IME 已被 OS 收起，TextInput System 须调用 `release_text_mode()`；若 IME 仍开放，维持 TEXT_MODE。Input System 不主动轮询 IME 状态。
 
+- **若应用进入后台时处于 `LONG_PRESSING` 状态**（long-press 已激活，`long_press_occurred` 已发出，手指仍按住）：与 drag 中断对称处理 —— 不发出任何额外信号（`long_press_occurred` 已在计时触发时发出，不重复；无 `drag_ended`，因 drag 从未开始），清空内部追踪状态。后续新 touch_down 可正常开始新手势序列。与 Core Rule 7 中"若 long-press 计时中 → 取消计时"的 `PENDING` 分支正交：本规则覆盖 long-press 已激活进入 `LONG_PRESSING` 后的中断路径。
+
 - **若第二根手指在 drag 进行中按下**：忽略第二根手指的事件（不消耗）；第一根手指追踪的 drag 继续。摇杆拖拽期间双指缩放 → 缩放被忽略（符合"无缩放"设计约束）。
 
 ## Dependencies
@@ -299,6 +301,8 @@ Input System 无专属 UI。它是路由层，不渲染任何界面元素。
 14. **GIVEN** drag 正在进行（已发出 `drag_started`），**WHEN** `NOTIFICATION_APPLICATION_PAUSED` 触发，**THEN** `drag_ended` 发出，内部追踪状态清空，后续新 touch_down 可正常开始新手势序列。
 
 14b. **GIVEN** long-press 计时中（已按下静止，500ms 计时尚未触发），**WHEN** `NOTIFICATION_APPLICATION_PAUSED` 触发，**THEN** long-press 计时取消，`long_press_occurred` **不**发出；内部追踪状态清空，后续新 touch_down 可正常开始新手势序列。
+
+14c. **GIVEN** long-press 已激活（`gesture_state == LONG_PRESSING`，`long_press_occurred` 已发出，手指仍按住未移动），**WHEN** `NOTIFICATION_APPLICATION_PAUSED` 触发，**THEN** **不**发出任何额外信号（不重复 `long_press_occurred`，无 `drag_ended`，无 `drag_started`）；内部追踪状态清空（`gesture_state` 重置为 PENDING），后续新 touch_down 可正常开始新手势序列。与 AC-14b 互补：14b 覆盖 PENDING（计时中）路径，14c 覆盖 LONG_PRESSING（计时已触发）路径。
 
 ### 性能
 

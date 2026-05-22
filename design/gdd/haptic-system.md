@@ -199,6 +199,12 @@ const VALID_KEYS: Dictionary[StringName, StringName] = {
 }
 const HAPTIC_DEBOUNCE_MS: int = 50
 
+# ADR-0001 Decision 5: Persistence `settings` slice constants.
+# MUST be `String` (not `StringName`) — JSON.parse_string() returns String-keyed Dictionaries.
+# StringName literals (&"settings") would silently return null on get_slice() lookup.
+const SETTINGS_SLICE          := "settings"
+const SETTINGS_HAPTIC_ENABLED := "haptic_enabled"
+
 signal haptic_played(key: StringName)  # 调试 + Juice Cookbook 验证
 
 enum Capability { AVAILABLE, UNAVAILABLE }
@@ -214,7 +220,9 @@ var _warned_unavailable: bool = false
 func _ready() -> void:
     _backend = _create_backend()  # 注入接缝，见下
     _capability = _backend.detect_capability()
-    _user_enabled = Persistence.get_slice(&"settings").get(&"haptic_enabled", true)
+    # ADR-0001 Decision 5: read user toggle via String-keyed `settings` slice.
+    var s: Dictionary = PersistenceService.get_slice(SETTINGS_SLICE, {})
+    _user_enabled = s.get(SETTINGS_HAPTIC_ENABLED, true)
     # 自订 OS 通知（不通过 Lifecycle 转发，对齐 Foundation 同侪模式）
     get_tree().root.connect("application_paused", _on_app_paused)
     get_tree().root.connect("application_resumed", _on_app_resumed)
@@ -238,7 +246,9 @@ func play(key: StringName) -> void:
 func set_user_enabled(enabled: bool) -> void:
     """玩家在 settings 中切换；与 lifecycle/capability 正交。"""
     _user_enabled = enabled
-    Persistence.set_slice(&"settings", {&"haptic_enabled": enabled})
+    # ADR-0001 Decision 5: write via String-keyed `settings` slice + explicit save_when_idle.
+    PersistenceService.set_slice(SETTINGS_SLICE, {SETTINGS_HAPTIC_ENABLED: enabled})
+    PersistenceService.save_when_idle()
 
 func is_available() -> bool:
     return _capability == Capability.AVAILABLE

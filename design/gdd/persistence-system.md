@@ -44,6 +44,9 @@ What players feel: nothing, directly. What they *don't* feel — and shouldn't h
      "preferences":    {           // MVP: AudioSystem-owned volume preferences (ADR-0001 Decision 3)
       "sfx_volume": 1.0,          // float [0.0, 1.0], default 1.0 — owned by AudioSystem
       "music_volume": 1.0         // float [0.0, 1.0], default 1.0 — owned by AudioSystem
+    },
+    "settings":       {           // MVP: HapticService-owned user toggles (ADR-0001 Decision 5)
+      "haptic_enabled": true      // bool, default true — owned by HapticService
     }
    }
    ```
@@ -143,6 +146,7 @@ Persistence is the **sole owner** of `user://save.json`. Every other system inte
 | **Shelf Collection** | Reads `get_slice("collection", [])` once on scene enter and **caches the result locally** — must not call per-frame (Core Rule 9 deep-copy semantics). | `collection` (reads) |
 | **Onboarding** | `get_slice("flags", {}).get("first_run_complete", false)` gate; `set_slice("flags", {...})` + `save_when_idle()` on completion | `flags` (owns `first_run_complete`) |
 | **Scene Composition** | OPTIONAL: `get_slice("flags", {}).get("last_scene", "main")`; `set_slice` + `save_when_idle()` on scene transition. **Also**: calls `Persistence.consume_corruption_notice()` on first launch; if `true`, renders the one-time corruption bottom-sheet (see UI Requirements). | `flags` (owns `last_scene`, consumer of `_corrupted_pending_notice`) |
+| **Haptic System** | `get_slice("settings", {}).get("haptic_enabled", true)` synchronously in `_ready()` (Persistence is Autoload #1, settled by the time Haptic #4 runs); on user toggle: `set_slice("settings", {...})` + `save_when_idle()`. Per ADR-0001 Decision 5. Keys are `String` constants, not `StringName`. | `settings` (owns `haptic_enabled`) |
 | **Mobile App Lifecycle** | Persistence internally subscribes to `NOTIFICATION_APPLICATION_PAUSED` / `NOTIFICATION_WM_GO_BACK_REQUEST` directly and calls `save_now()` (sync, lifecycle-only). | (Persistence is the consumer) |
 
 > ⚠️ **Provisional Contract**: the 5 downstream GDDs (Text Input, Product, Shelf, Onboarding, Scene Composition) are not yet written. When designed, they MUST conform to the slice names and contract shapes above. Any deviation requires updating this GDD via `/consistency-check`.
@@ -315,10 +319,10 @@ Grouped by risk class. Format: `If [condition]: [outcome]. [rationale]`.
 
 | System | Direction | Nature | Hard / Soft | Interface |
 |--------|-----------|--------|-------------|-----------|
-| **Text Input** | Text Input → Persistence | Data (read+write) | **Hard** — 24h dedup state must survive sessions | `get_slice("worry_history", [])` / `set_slice("worry_history", updated)` + `save_now()` |
-| **Product System** | Product → Persistence | Data (read+write) | **Hard** — collection IS persistent state | `get_slice("collection", [])` / `set_slice("collection", updated)` + `save_now()` |
+| **Text Input** | Text Input → Persistence | Data (read+write) | **Hard** — 24h dedup state must survive sessions | `get_slice("worry_history", [])` / `set_slice("worry_history", updated)` + `save_when_idle()` |
+| **Product System** | Product → Persistence | Data (read+write) | **Hard** — collection IS persistent state | `get_slice("collection", [])` / `set_slice("collection", updated)` + `save_when_idle()` |
 | **Shelf Collection** | Shelf → Persistence | Data (read-only) | **Hard** — Shelf has no other source of collection data | `get_slice("collection", [])` |
-| **Onboarding** | Onboarding → Persistence | Data (read+write) | **Hard** — first-run gating relies on persistent flag | `get_slice("flags", {}).get("first_run_complete", false)` / `set_slice("flags", {...})` + `save_now()` |
+| **Onboarding** | Onboarding → Persistence | Data (read+write) | **Hard** — first-run gating relies on persistent flag | `get_slice("flags", {}).get("first_run_complete", false)` / `set_slice("flags", {...})` + `save_when_idle()` |
 | **Scene Composition** | Scene → Persistence | Data (read+write) | **Soft** — `last_scene` is a convenience for resume; default `"main"` works without it | `get_slice("flags", {}).get("last_scene", "main")` / `set_slice` |
 
 ### Cross-cutting (subscriber, not bidirectional dependency)

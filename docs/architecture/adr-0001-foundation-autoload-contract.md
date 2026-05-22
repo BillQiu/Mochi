@@ -94,7 +94,7 @@ The `preferences` slice in PersistenceService schema is promoted from `// reserv
 }
 ```
 
-**Key type constraint — BLOCKING**: Preference key constants MUST be defined as `String` (not `StringName`). `JSON.parse_string()` returns Dictionaries with `String` keys; querying with `StringName` literals (`&"sfx_volume"`) returns `null` in GDScript.
+**Key type constraint — BLOCKING (generalized in Decision 5)**: All Persistence slice names AND keys within slices that go through JSON roundtrip MUST be defined as `String` constants (not `StringName`). `JSON.parse_string()` returns Dictionaries with `String` keys; querying with `StringName` literals (`&"sfx_volume"`, `&"settings"`) returns `null` in GDScript.
 
 ```gdscript
 const PREFS_SFX_VOLUME   := "sfx_volume"    # String — NOT &"sfx_volume"
@@ -129,6 +129,55 @@ Extends and supersedes partial specifications in:
 - Lifecycle Core Rule 1 (missing HapticService between AudioSystem and LifecycleService)
 
 HapticService is placed before LifecycleService because LifecycleService must poll `HapticService.is_ready()` in its App Ready check (Decision 2).
+
+### Decision 5: `settings` Slice — Discrete User Toggles
+
+A new top-level Persistence slice `settings` is declared, owned by Foundation Autoloads that expose user-facing on/off / categorical toggles. MVP locked shape:
+
+```json
+"settings": {
+  "haptic_enabled": true
+}
+```
+
+- `haptic_enabled`: bool, default `true`. Owned by HapticService.
+- All other `settings` subkeys remain reserved for v1.0+ (e.g., `notifications_enabled`, `reduce_motion`, `vibration_intensity`).
+
+**Semantic boundary between `preferences` and `settings`**:
+- `preferences` = continuous tuning values (sliders): `sfx_volume`, `music_volume`
+- `settings` = discrete toggles / categorical switches: `haptic_enabled`, (future) `reduce_motion`
+
+This split keeps each slice's shape coherent and prevents `preferences` from accreting into a grab-bag as Wave 2+ adds more user-controlled options.
+
+**String key constraint (extended from Decision 3)**: same rule applies — slice name and keys are `String` constants, not `StringName` literals.
+
+```gdscript
+# ─── HapticService: settings slice constants — String type, NOT StringName ────
+const SETTINGS_SLICE          := "settings"           # String, NOT &"settings"
+const SETTINGS_HAPTIC_ENABLED := "haptic_enabled"     # String, NOT &"haptic_enabled"
+```
+
+HapticService reads `_user_enabled` synchronously in `_ready()`. No `call_deferred` is required because PersistenceService is Autoload #1 and is `READY_*` by the time HapticService (#4) runs — this satisfies Persistence Core Rule 10 only because Persistence's `is_ready() == true` is guaranteed by sequential init order, not because we're polling.
+
+```gdscript
+func _ready() -> void:
+    _backend = _create_backend()
+    _capability = _backend.detect_capability()
+    var s: Dictionary = PersistenceService.get_slice(SETTINGS_SLICE, {})
+    _user_enabled = s.get(SETTINGS_HAPTIC_ENABLED, true)
+    # ... OS notification subscriptions ...
+```
+
+Write path on user toggle:
+
+```gdscript
+func set_user_enabled(enabled: bool) -> void:
+    _user_enabled = enabled
+    PersistenceService.set_slice(SETTINGS_SLICE, {SETTINGS_HAPTIC_ENABLED: enabled})
+    PersistenceService.save_when_idle()
+```
+
+**Anti-Pillar alignment**: `settings` is the canonical slice for user-controlled privacy / accessibility / sensory toggles. Anti-Pillar "privacy is the default" implies each `settings` key's default value must be the most permissive / least intrusive — `haptic_enabled = true` is permissive (haptics on by default), but a future `analytics_opt_in` would default to `false`. ADR-0002 enforces this through code review, not at the ADR-0001 schema level.
 
 ### Architecture Diagram
 
@@ -231,6 +280,8 @@ const PREFS_MUSIC_VOLUME := "music_volume"   # float [0.0, 1.0], default 1.0
 | `audio-system.md` | Core Rule 10: `is_ready()` marked as "consistency-check 回填" placeholder | Formalizes and locks the contract; removes placeholder status |
 | `haptic-system.md` | Not included in Lifecycle App Ready check; `is_ready()` undefined | Adds to App Ready formula (Decision 2); adds `is_ready()` to HapticService required API |
 | `mobile-app-lifecycle.md` | Core Rule 1: Autoload order omits HapticService | Establishes canonical 5-entry order including HapticService |
+| `haptic-system.md` | `haptic_enabled` user toggle has no declared Persistence slice; uses `StringName` literals violating Decision 3 | Decision 5 declares `settings` slice with locked MVP shape; extends `String` constraint to slice names |
+| `persistence-system.md` | Schema does not include `settings` slice required by HapticService user toggle | Decision 5 adds `settings` top-level slice to MVP schema |
 
 ## Performance Implications
 - **CPU**: Negligible — four boolean checks, called once per cold start
@@ -248,6 +299,8 @@ const PREFS_MUSIC_VOLUME := "music_volume"   # float [0.0, 1.0], default 1.0
 6. AudioSystem GDD: formalize Core Rule 10 (remove placeholder); update Core Rule 7 (add String key names + `call_deferred` note)
 7. All GDD revisions complete → run `/consistency-check` to verify cross-document alignment
 8. Implementation: each GDD implementor adds `is_ready() -> bool` to their Autoload class
+9. PersistenceService GDD: add `settings` top-level slice to file schema (Core Rule 2); slice owned by HapticService with locked MVP shape `{"haptic_enabled": true}`
+10. HapticService GDD: replace `&"settings"` / `&"haptic_enabled"` StringName literals with `SETTINGS_SLICE` / `SETTINGS_HAPTIC_ENABLED` String constants; add explicit `PersistenceService.save_when_idle()` call after `set_slice`
 
 ## Validation Criteria
 - All four Foundation GDDs (`persistence-system.md`, `audio-system.md`, `haptic-system.md`, `input-system.md`) contain `is_ready() -> bool` in their API surface section
@@ -256,6 +309,10 @@ const PREFS_MUSIC_VOLUME := "music_volume"   # float [0.0, 1.0], default 1.0
 - Codebase grep: no `&"sfx_volume"` or `&"music_volume"` StringName literals (must be String constants)
 - Cold start profiling on iPhone SE 2nd gen: `app_ready` signal fires within 3 s from launch
 - `app_ready` fires exactly once in a 10-session smoke test
+- `persistence-system.md` schema contains `settings` top-level slice with locked MVP shape `{"haptic_enabled": true}`
+- `haptic-system.md` reads/writes `settings.haptic_enabled` using `String` constants (`SETTINGS_SLICE` / `SETTINGS_HAPTIC_ENABLED`)
+- Codebase grep: no `&"settings"` or `&"haptic_enabled"` StringName literals in HapticService
+- End-to-end test: toggle `haptic_enabled` off → cold restart → setting persists as off (does not silently revert to default `true`)
 
 ## Related Decisions
 - ADR-0002 (planned): Anti-Pillar Structural Guards — may reference Foundation APIs defined here
