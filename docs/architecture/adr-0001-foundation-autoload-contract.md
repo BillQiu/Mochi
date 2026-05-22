@@ -1,7 +1,7 @@
 # ADR-0001: Foundation Autoload Interface Contract
 
 ## Status
-Proposed
+Accepted (2026-05-22, per `/architecture-review adr-0001 adr-0002` — see `docs/architecture/architecture-review-2026-05-22.md`)
 
 ## Date
 2026-05-22
@@ -81,7 +81,7 @@ App Ready condition (polled via call_deferred from LifecycleService._ready()):
   → emit app_ready (once, lifetime)
 ```
 
-No retry loop is needed: all four Autoloads initialize synchronously before LifecycleService. The `call_deferred` handles peers that complete internal async work after `_ready()` returns.
+No retry loop is needed for `_ready()` itself — all four Autoloads complete their `_ready()` calls synchronously before LifecycleService's `_ready()` runs. The `call_deferred` pattern handles peers whose `is_ready()` may still return `false` immediately after their `_ready()` returns because they have internal `call_deferred` work pending (e.g., AudioSystem's `_load_volume_prefs` in Decision 3). Lifecycle's `_check_boot_ready` re-dispatches itself via `call_deferred` until all four peers report ready — this is a deferred poll, not a retry loop in the failure-recovery sense. The Lifecycle GDD Formula 1 mechanism is the canonical implementation of this pattern.
 
 ### Decision 3: `preferences` Slice Promoted to MVP Scope
 

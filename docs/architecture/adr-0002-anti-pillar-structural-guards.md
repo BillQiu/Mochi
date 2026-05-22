@@ -1,7 +1,7 @@
 # ADR-0002: Anti-Pillar Structural Guards
 
 ## Status
-Proposed
+Accepted (2026-05-22, per `/architecture-review adr-0001 adr-0002` — see `docs/architecture/architecture-review-2026-05-22.md`)
 
 ## Date
 2026-05-22

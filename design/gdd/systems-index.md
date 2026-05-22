@@ -178,13 +178,13 @@ Wave 1-6 design GDDs sequentially within each wave but **systems within a wave c
 
 跨文档结构性问题先用 ADR 收敛，再批量修订单 GDD（避免反复返工）。**全部完成**：
 
-1. ✅ **`docs/architecture/adr-0001-foundation-autoload-contract.md`** (Proposed) — 5 个 Decision：
+1. ✅ **`docs/architecture/adr-0001-foundation-autoload-contract.md`** (Accepted 2026-05-22) — 5 个 Decision：
    - Decision 1: 统一 `is_ready() -> bool` 契约（4 个 Foundation peer 全部实现）
    - Decision 2: Lifecycle App Ready 检查扩展为 4-peer `is_ready()` 查询
    - Decision 3: `preferences` slice 提升为 MVP（`sfx_volume` + `music_volume`，AudioSystem 拥有）+ String 键约束（防 JSON-roundtrip 时 StringName 静默返回 null）
    - Decision 4: 规范 Autoload 注册顺序 `Persistence → Input → Audio → Haptic → Lifecycle`
    - Decision 5（**2026-05-22 新增**）: 新建 `settings` slice（HapticService 拥有 `haptic_enabled`）+ String 键约束泛化至所有 Persistence slice 名 + 键名
-2. ✅ **`docs/architecture/adr-0002-anti-pillar-structural-guards.md`** (Proposed) — Lifecycle 信号订阅 Permitted Subscriber 表 + Forbidden Pattern `lifecycle_signal_analytics_subscription` + Core Rule 11 写入 Lifecycle GDD + Forbidden Pattern 登记至 `docs/registry/architecture.yaml`
+2. ✅ **`docs/architecture/adr-0002-anti-pillar-structural-guards.md`** (Accepted 2026-05-22) — Lifecycle 信号订阅 Permitted Subscriber 表 + Forbidden Pattern `lifecycle_signal_analytics_subscription` + Core Rule 11 写入 Lifecycle GDD + Forbidden Pattern 登记至 `docs/registry/architecture.yaml`
 3. ✅ **5 个 GDD 全量修订引用新 ADR**：Persistence / Input / Audio / Haptic / Lifecycle 各自 BLOCKING 收口（commit `c38748c` 主修订 + `44bf308` re-review BLOCKING 二修），5 份独立 re-review 全部通过
 
 500KB 长期用户阈值：按 creative-director 裁定，**降级为 v1.0 Roadmap 必做**（多切片迁移路径），不阻塞 MVP。已在 Persistence GDD 中以 v1.0+ 标注。
@@ -206,11 +206,11 @@ See `prototypes/mochi-concept/README.md` Findings for full context.
 ## Next Steps
 
 - [x] Wave 1 设计 + 评审 + 修订全量完成（2026-05-22，commits `c38748c` + `44bf308` + `9568a3f`）
-- [x] ADR-0001（5 Decisions, 含 settings slice）+ ADR-0002 Proposed
+- [x] ADR-0001（5 Decisions, 含 settings slice）+ ADR-0002 **Accepted 2026-05-22**（per `/architecture-review adr-0001 adr-0002`，报告 `docs/architecture/architecture-review-2026-05-22.md`）
 - [x] `/consistency-check`（commit `f9095dc`：4 conflicts resolved）
 - [x] `/review-all-gdds` v3（2026-05-22 三轮 cross-review；C1/C2/C3 BLOCKING + C4/C5/C6/C7 Warnings 全部 commit `9568a3f` 修复）
-- [x] `/gate-check pre-production` Wave 1→2 unlock checkpoint：**PASS（附条件）**
+- [x] `/gate-check pre-production` Wave 1→2 unlock checkpoint：**PASS（附条件 → 已解除：两 ADR 已 Accepted）**
+- [x] `/architecture-review adr-0001 adr-0002`（10/10 TR 覆盖、0 conflict、首次登记 tr-registry.yaml）
 - [ ] **下一步：Wave 2 `/design-system juice-cookbook`** — ~500 字 reference doc（cookbook 类型，非完整 GDD），是 Wave 3-6 所有 Core gameplay GDD 的前置
-- [ ] 并行可选：`/architecture-review adr-0001` + `adr-0002` 推 Accepted（不阻塞 Wave 2，但 /vertical-slice 前必须完成）
 - [ ] Then Wave 3-6: Mochi Character / Text Input / Lever / Shred / Product / Silhouette / Shelf / Onboarding / Scene Composition（5 Wave）
 - [ ] 全 MVP GDD 完成 → `/create-architecture` → 真 Pre-Production gate → `/vertical-slice` → enter Production

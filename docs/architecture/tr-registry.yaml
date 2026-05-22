@@ -25,9 +25,89 @@
 # STATUS VALUES: active | deprecated | superseded-by: TR-[system]-NNN
 
 version: 1
-last_updated: ""
+last_updated: "2026-05-22"
 
-requirements: []
+requirements:
+  # ─── Foundation layer (registered by /architecture-review adr-0001 adr-0002, 2026-05-22) ───
+  - id: TR-foundation-001
+    system: foundation
+    gdd: design/gdd/mobile-app-lifecycle.md
+    requirement: "LifecycleService must query unified is_ready() -> bool on all four Foundation peers (PersistenceService, InputService, AudioSystem, HapticService) before emitting app_ready."
+    created: 2026-05-22
+    revised: ""
+    status: active
+
+  - id: TR-foundation-002
+    system: foundation
+    gdd: design/gdd/persistence-system.md
+    requirement: "Strict Autoload registration order: PersistenceService → InputService → AudioSystem → HapticService → LifecycleService. Foundation peers may synchronously read from peers earlier in the chain only via the documented Carve-out exemption list."
+    created: 2026-05-22
+    revised: ""
+    status: active
+
+  - id: TR-foundation-003
+    system: foundation
+    gdd: design/gdd/audio-system.md
+    requirement: "preferences slice is MVP-owned by AudioSystem with locked shape {sfx_volume: float [0,1], music_volume: float [0,1]}, both default 1.0. Keys are String constants, NOT StringName."
+    created: 2026-05-22
+    revised: ""
+    status: active
+
+  - id: TR-foundation-004
+    system: foundation
+    gdd: design/gdd/haptic-system.md
+    requirement: "settings slice is MVP-owned by HapticService with locked shape {haptic_enabled: bool, default true}. Keys are String constants, NOT StringName. Slice name is also a String constant."
+    created: 2026-05-22
+    revised: ""
+    status: active
+
+  - id: TR-foundation-005
+    system: foundation
+    gdd: design/gdd/haptic-system.md
+    requirement: "HapticService synchronously reads settings.haptic_enabled in its _ready() (post-Persistence sequential init order guarantees Persistence is READY_*). Registered as Carve-out exemption #1 in Persistence Core Rule 10."
+    created: 2026-05-22
+    revised: ""
+    status: active
+
+  - id: TR-foundation-006
+    system: foundation
+    gdd: design/gdd/persistence-system.md
+    requirement: "All Persistence slice names AND keys within slices that go through JSON roundtrip MUST be defined as String constants. StringName literals (&\"key\") return null when querying JSON-parsed Dictionaries because JSON.parse_string() returns String-keyed Dictionaries."
+    created: 2026-05-22
+    revised: ""
+    status: active
+
+  - id: TR-foundation-007
+    system: foundation
+    gdd: design/gdd/mobile-app-lifecycle.md
+    requirement: "Subscriptions to LifecycleService signals (app_ready / app_paused / app_resumed) are permitted only for gameplay, UI, visual, audio, or haptic state changes. Each subscriber must be listed in the ADR-0002 Permitted Subscriber table before implementation."
+    created: 2026-05-22
+    revised: ""
+    status: active
+
+  - id: TR-foundation-008
+    system: foundation
+    gdd: design/gdd/game-concept.md
+    requirement: "Forbidden Pattern lifecycle_signal_analytics_subscription registered in docs/registry/architecture.yaml. Bans subscription to Lifecycle signals for timestamp recording, session-duration computation, frequency counting, or any behavioral usage log — regardless of whether data is uploaded."
+    created: 2026-05-22
+    revised: ""
+    status: active
+
+  - id: TR-foundation-009
+    system: foundation
+    gdd: design/gdd/mobile-app-lifecycle.md
+    requirement: "All three restricted signals (app_ready / app_paused / app_resumed) in LifecycleService.gd must carry a [RESTRICTED — ADR-0002] doc comment naming the permitted purposes and the forbidden pattern reference."
+    created: 2026-05-22
+    revised: ""
+    status: active
+
+  - id: TR-foundation-010
+    system: foundation
+    gdd: design/gdd/mobile-app-lifecycle.md
+    requirement: "GUT integration test verifies via Object.get_signal_connection_list() that no unauthorized subscribers are connected to Lifecycle signals after main scene initialization. Test must be updated when new permitted subscribers are added."
+    created: 2026-05-22
+    revised: ""
+    status: active
 
 # --- EXAMPLE ENTRIES (remove when first real entries are added) ---
 #

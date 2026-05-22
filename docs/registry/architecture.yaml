@@ -30,7 +30,7 @@
 #   Superseded entries:     Grep pattern="status: superseded"
 
 version: 1
-last_updated: ""
+last_updated: "2026-05-22"
 
 # ─── STATE OWNERSHIP ─────────────────────────────────────────────────────────
 # Who is the authoritative owner of each piece of shared game state.
@@ -63,6 +63,19 @@ state_ownership:
     write_access: audio-system-only
     referenced_by:
       - docs/architecture/adr-0001-foundation-autoload-contract.md
+    added: 2026-05-22
+    revised: ""
+
+  - state: settings.haptic_enabled
+    status: active
+    owner_system: haptic-system
+    adr: docs/architecture/adr-0001-foundation-autoload-contract.md
+    interface: "PersistenceService.get_slice('settings') → dict['haptic_enabled'] (bool, default true); written via set_slice('settings', merged_dict) + save_when_idle() — read-modify-write per Persistence Edge Case C; HapticService #4 reads synchronously in _ready() per Persistence Core Rule 10 Carve-out (Foundation peer exemption list, entry #1)"
+    write_access: haptic-system-only
+    referenced_by:
+      - docs/architecture/adr-0001-foundation-autoload-contract.md
+      - design/gdd/haptic-system.md
+      - design/gdd/persistence-system.md
     added: 2026-05-22
     revised: ""
 
