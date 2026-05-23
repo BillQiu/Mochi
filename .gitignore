@@ -1,8 +1,8 @@
-# Godot 4
-godot/.godot/
-godot/android/
-godot/ios/
-godot/*.translation
+# Godot 4 — match anywhere (e.g. reference/mochi-concept/.godot/)
+**/.godot/
+**/android/
+**/ios/
+**/*.translation
 
 # Godot exports
 builds/
