@@ -1,0 +1,150 @@
+[gd_resource type="Theme" load_steps=10 format=3]
+
+; Mochi 基础 Theme — 把 design tokens 烧进 Godot 默认 Control 样式。
+; 任何 Control 节点放上 Main scene 后会自动继承这些样式。
+; 多层 plush shadow (contact + ambient) Godot StyleBoxFlat 不支持原生双层，
+; 需要在消费端用嵌套 Panel 实现 contact 层；这里默认只挂 ambient 层 (shadow-2)。
+;
+; 注意：display font (Fredoka) 不在 Theme 默认字段里挂全局，因为它只服务 wordmark
+; 和大数字。消费端用 `var f := load("res://assets/fonts/Fredoka-Variable.ttf")`
+; 然后 `label.add_theme_font_override("font", f)` 即可。
+
+[sub_resource type="SystemFont" id="SystemFont_body"]
+font_names = PackedStringArray("PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", "system-ui")
+
+[sub_resource type="StyleBoxFlat" id="SB_btn_normal"]
+bg_color = Color(0.819, 0.478, 0.322, 1)
+corner_radius_top_left = 999
+corner_radius_top_right = 999
+corner_radius_bottom_right = 999
+corner_radius_bottom_left = 999
+shadow_color = Color(0.176, 0.231, 0.310, 0.14)
+shadow_size = 14
+shadow_offset = Vector2(0, 6)
+content_margin_left = 28.0
+content_margin_top = 16.0
+content_margin_right = 28.0
+content_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxFlat" id="SB_btn_pressed"]
+bg_color = Color(0.659, 0.357, 0.212, 1)
+corner_radius_top_left = 999
+corner_radius_top_right = 999
+corner_radius_bottom_right = 999
+corner_radius_bottom_left = 999
+content_margin_left = 28.0
+content_margin_top = 17.0
+content_margin_right = 28.0
+content_margin_bottom = 15.0
+
+[sub_resource type="StyleBoxFlat" id="SB_btn_disabled"]
+bg_color = Color(0.819, 0.478, 0.322, 0.4)
+corner_radius_top_left = 999
+corner_radius_top_right = 999
+corner_radius_bottom_right = 999
+corner_radius_bottom_left = 999
+content_margin_left = 28.0
+content_margin_top = 16.0
+content_margin_right = 28.0
+content_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxFlat" id="SB_input_normal"]
+bg_color = Color(1.0, 0.984, 0.945, 1)
+border_color = Color(0.176, 0.231, 0.310, 0.08)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+content_margin_left = 16.0
+content_margin_top = 14.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+
+[sub_resource type="StyleBoxFlat" id="SB_input_focus"]
+bg_color = Color(1.0, 0.984, 0.945, 1)
+border_color = Color(0.176, 0.231, 0.310, 0.22)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+content_margin_left = 16.0
+content_margin_top = 14.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+
+[sub_resource type="StyleBoxFlat" id="SB_panel_card"]
+bg_color = Color(0.984, 0.957, 0.910, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0.176, 0.231, 0.310, 0.14)
+shadow_size = 14
+shadow_offset = Vector2(0, 6)
+content_margin_left = 16.0
+content_margin_top = 16.0
+content_margin_right = 16.0
+content_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxFlat" id="SB_sheet"]
+bg_color = Color(1.0, 0.992, 0.969, 1)
+corner_radius_top_left = 36
+corner_radius_top_right = 36
+corner_radius_bottom_right = 0
+corner_radius_bottom_left = 0
+shadow_color = Color(0.176, 0.231, 0.310, 0.28)
+shadow_size = 48
+shadow_offset = Vector2(0, 24)
+content_margin_left = 22.0
+content_margin_top = 14.0
+content_margin_right = 22.0
+content_margin_bottom = 32.0
+
+[sub_resource type="StyleBoxEmpty" id="SB_empty"]
+
+[resource]
+default_font = SubResource("SystemFont_body")
+default_font_size = 16
+Button/colors/font_color = Color(1.0, 0.984, 0.945, 1)
+Button/colors/font_disabled_color = Color(1.0, 0.984, 0.945, 0.4)
+Button/colors/font_focus_color = Color(1.0, 0.984, 0.945, 1)
+Button/colors/font_hover_color = Color(1.0, 0.984, 0.945, 1)
+Button/colors/font_pressed_color = Color(1.0, 0.984, 0.945, 1)
+Button/font_sizes/font_size = 16
+Button/styles/disabled = SubResource("SB_btn_disabled")
+Button/styles/focus = SubResource("SB_empty")
+Button/styles/hover = SubResource("SB_btn_normal")
+Button/styles/normal = SubResource("SB_btn_normal")
+Button/styles/pressed = SubResource("SB_btn_pressed")
+Label/colors/font_color = Color(0.176, 0.231, 0.310, 1)
+Label/font_sizes/font_size = 16
+LineEdit/colors/caret_color = Color(0.819, 0.478, 0.322, 1)
+LineEdit/colors/font_color = Color(0.176, 0.231, 0.310, 1)
+LineEdit/colors/font_placeholder_color = Color(0.482, 0.522, 0.592, 1)
+LineEdit/colors/font_selected_color = Color(1.0, 0.992, 0.969, 1)
+LineEdit/colors/selection_color = Color(0.910, 0.647, 0.580, 0.5)
+LineEdit/font_sizes/font_size = 16
+LineEdit/styles/focus = SubResource("SB_input_focus")
+LineEdit/styles/normal = SubResource("SB_input_normal")
+LineEdit/styles/read_only = SubResource("SB_input_normal")
+Panel/styles/panel = SubResource("SB_panel_card")
+PanelContainer/styles/panel = SubResource("SB_panel_card")
+Sheet/base_type = &"PanelContainer"
+Sheet/styles/panel = SubResource("SB_sheet")
+TextEdit/colors/caret_color = Color(0.819, 0.478, 0.322, 1)
+TextEdit/colors/font_color = Color(0.176, 0.231, 0.310, 1)
+TextEdit/colors/font_placeholder_color = Color(0.482, 0.522, 0.592, 1)
+TextEdit/colors/font_selected_color = Color(1.0, 0.992, 0.969, 1)
+TextEdit/colors/selection_color = Color(0.910, 0.647, 0.580, 0.5)
+TextEdit/font_sizes/font_size = 16
+TextEdit/styles/focus = SubResource("SB_input_focus")
+TextEdit/styles/normal = SubResource("SB_input_normal")
+TextEdit/styles/read_only = SubResource("SB_input_normal")
